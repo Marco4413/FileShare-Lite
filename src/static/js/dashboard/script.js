@@ -106,6 +106,10 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
                 });
                 if (res.ok) {
                     const parent = entryHolder.parentElement;
+                    if (SelectedFolder && (entryHolder === SelectedFolder || entryHolder.contains(SelectedFolder))) {
+                        SelectedFolder = parent.parentElement; // The root node can't be deleted so this should be safe
+                        SelectedFolder.classList.add("selected");
+                    }
                     entryHolder.remove();
                     if (parent.children.length <= 0)
                         parent.innerText = "<EMPTY>";
