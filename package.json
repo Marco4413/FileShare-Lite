@@ -1,0 +1,42 @@
+{
+  "name": "fileshare-lite",
+  "version": "1.0.0",
+  "description": "A small file sharing system.",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "ts-node .",
+    "watch": "nodemon --watch \"src/**\" --ext \"ts\" --exec \"npm start\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [ "file", "share" ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Marco4413/FileShare-Lite.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Marco4413/FileShare-Lite/issues"
+  },
+  "homepage": "https://github.com/Marco4413/FileShare-Lite#readme",
+  "author": {
+    "name": "Marco4413",
+    "url": "https://github.com/Marco4413"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@types/archiver": "^6.0.2",
+    "@types/cookie-parser": "^1.4.6",
+    "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.11",
+    "archiver": "^6.0.1",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "short-uuid": "^4.2.2",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}
