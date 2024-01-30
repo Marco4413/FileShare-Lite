@@ -61,7 +61,7 @@ async function LoadShares(sharesTable) {
                 } else if (remaining > 0) {
                     shareInfoRemaining.innerText = `R|${Math.ceil(remaining/1000)}s`;
                     desiredTimeout = 1_000;
-                } else shareInfoRemaining.innerText = `[EXPIRED]`;
+                } else shareInfoRemaining.innerText = "[EXPIRED]";
                 if (shareInfoRemaining.isConnected && desiredTimeout > 0)
                     return setTimeout(updateRemainingTime, desiredTimeout);
                 return null;
