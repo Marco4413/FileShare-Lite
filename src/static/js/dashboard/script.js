@@ -108,9 +108,10 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
                 if (!ev.shiftKey) {
                     const maxDownloads = window.prompt("Max Downloads:", 0);
                     if (!maxDownloads) return;
-                    const maxAge = window.prompt("Max Age (ms):", 0);
-                    if (!maxAge) return;
-                    extraParams = `&maxDownloads=${encodeURIComponent(maxDownloads)}&maxAge=${encodeURIComponent(maxAge)}`;
+                    const maxAgeStr = window.prompt("Max Age (s):", 0);
+                    if (!maxAgeStr) return;
+                    const maxAge = Number.parseFloat(maxAgeStr) * 1000;
+                    extraParams = `&maxDownloads=${encodeURIComponent(maxDownloads)}&maxAge=${encodeURIComponent(maxAge.toString())}`;
                 }
 
                 const res = await FetchWLoading("/api/share", {
