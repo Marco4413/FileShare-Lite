@@ -28,15 +28,36 @@ async function LoadShares(sharesList) {
             LoadShares(sharesList);
         });
         shareListItem.appendChild(shareDelete);
-        const shareInfo = document.createElement("span");
-        if (share.maxDownloads > 0)
-            shareInfo.innerText = `D|${share.downloads}/${share.maxDownloads}`;
-        else shareInfo.innerText = `D|${share.downloads}`;
+
+        const shareInfo = document.createElement("div");
+        shareInfo.classList.add("share-info");
+
+        const shareInfoDownloads = document.createElement("div")
+        if (share.maxDownloads > 0) {
+            shareInfoDownloads.innerText = `D|${share.downloads}/${share.maxDownloads}`;
+        } else shareInfoDownloads.innerText = `D|${share.downloads}`;
+        shareInfo.appendChild(shareInfoDownloads);
+
         if (share.expiryDate > 0) {
-            const remaining = Math.max(0, share.expiryDate - Date.now());
-            if (remaining >= 3600_000)
-                shareInfo.innerText += ` R|${Math.round(remaining/3600_000)}h`;
-            else shareInfo.innerText += ` R|${Math.round(remaining/1000)}s`;
+            const shareInfoRemaining = document.createElement("div");
+            const updateRemainingTime = () => {
+                const remaining = Math.max(0, share.expiryDate - Date.now());
+                if (remaining <= 0) {
+                    shareInfoRemaining.innerText = `[EXPIRED]`;
+                    return true;
+                } else if (remaining >= 3600_000)
+                    shareInfoRemaining.innerText = `R|${Math.round(remaining/3600_000)}h`;
+                else shareInfoRemaining.innerText = `R|${Math.round(remaining/1000)}s`;
+                return false;
+            };
+            updateRemainingTime();
+            const updateIntervalId = setInterval(() => {
+                // Cancel timer if shareInfoRemaining is no longer in the DOM
+                //   or remaining time is expired.
+                if (!shareInfoRemaining.isConnected || updateRemainingTime())
+                    clearInterval(updateIntervalId);
+            }, 5e3);
+            shareInfo.appendChild(shareInfoRemaining);
         }
         shareListItem.appendChild(shareInfo);
         const shareURL = document.createElement("a");

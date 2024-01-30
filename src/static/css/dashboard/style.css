@@ -32,6 +32,10 @@ ul {
     word-break: break-all;
 }
 
+.share-info {
+    text-align: center;
+}
+
 .directory, .file {
     width: fit-content;
 }
