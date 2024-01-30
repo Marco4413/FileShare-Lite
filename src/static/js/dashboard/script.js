@@ -54,7 +54,6 @@ let SelectedFolder;
 function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
     rootList.innerHTML = "";
     rootList.setAttribute("path", path);
-    let hasFiles = false;
     const entries = Object.entries(dirTree);
     if (sorted) {
         entries.sort((a, b) => {
@@ -66,7 +65,6 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
         });
     }
     for (const [name, data] of entries) {
-        hasFiles = true;
         const entryPath = path + name;
         const entryHolder = document.createElement("li");
         if (path.length > 0) {
@@ -111,8 +109,6 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
                         SelectedFolder.classList.add("selected");
                     }
                     entryHolder.remove();
-                    if (parent.children.length <= 0)
-                        parent.innerText = "<EMPTY>";
                 }
                 else window.alert(await res.text());
             });
@@ -129,19 +125,19 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
             entryName.innerText = `${name} ${file.size}B ${lastModified.toLocaleDateString()} ${lastModified.toLocaleTimeString()}`;
             entryHolder.appendChild(entryName);
         } else {
-            const empty = Object.keys(data).length > 0 ? "" : " <EMPTY>";
+            entryHolder.classList.add("directory");
             const entryChildrenHolder = document.createElement("ul");
             entryChildrenHolder.classList.add("fs-tree", "collapsed");
             const entryName = document.createElement("span");
-            entryName.classList.add("directory", "collapsible");
-            entryName.innerText = `> ${name}${empty}`;
+            entryName.classList.add("collapsible");
+            entryName.innerText = `> ${name}`;
             entryName.addEventListener("click", () => {
                 if (SelectedFolder)
                     SelectedFolder.classList.remove("selected");
                 SelectedFolder = entryHolder;
                 SelectedFolder.classList.add("selected");
                 if (entryChildrenHolder.classList.toggle("collapsed"))
-                    entryName.innerText = `> ${name}${empty}`;
+                    entryName.innerText = `> ${name}`;
                 else entryName.innerText = `| ${name}`;
             });
             entryHolder.appendChild(entryName);
@@ -149,12 +145,6 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
             LoadFSFromDirTree(entryChildrenHolder, data, entryPath + "/");
         }
         rootList.appendChild(entryHolder);
-    }
-
-    if (!hasFiles) {
-        const span = document.createElement("span");
-        span.innerText = "<EMPTY>";
-        rootList.appendChild(span);
     }
 }
 

@@ -36,6 +36,11 @@ ul {
     width: fit-content;
 }
 
+li.directory:not(:has(> ul.fs-tree > li.file, > ul.fs-tree > li.directory))::after {
+    content: "<EMPTY>";
+    padding: 5px;
+}
+
 .collapsed {
     display: none;
 }
