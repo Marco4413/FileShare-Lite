@@ -50,22 +50,27 @@ async function LoadShares(sharesTable) {
         if (share.expiryDate > 0) {
             const shareInfoRemaining = document.createElement("div");
             const updateRemainingTime = () => {
+                let desiredTimeout = 0;
                 const remaining = Math.max(0, share.expiryDate - Date.now());
-                if (remaining <= 0) {
-                    shareInfoRemaining.innerText = `[EXPIRED]`;
-                    return true;
-                } else if (remaining >= 3600_000)
-                    shareInfoRemaining.innerText = `R|${Math.round(remaining/3600_000)}h`;
-                else shareInfoRemaining.innerText = `R|${Math.round(remaining/1000)}s`;
-                return false;
+                if (remaining >= 3600_000) {
+                    shareInfoRemaining.innerText = `R|${Math.ceil(remaining/3600_000)}h`;
+                    desiredTimeout = Math.min(remaining - 3600_000, 3600_000);
+                } else if (remaining >= 60_000) {
+                    shareInfoRemaining.innerText = `R|${Math.ceil(remaining/180_000)}min`;
+                    desiredTimeout = Math.min(remaining - 60_000, 30_000);
+                } else if (remaining > 0) {
+                    shareInfoRemaining.innerText = `R|${Math.ceil(remaining/1000)}s`;
+                    desiredTimeout = 1_000;
+                } else shareInfoRemaining.innerText = `[EXPIRED]`;
+                if (shareInfoRemaining.isConnected && desiredTimeout > 0)
+                    return setTimeout(updateRemainingTime, desiredTimeout);
+                return null;
             };
-            updateRemainingTime();
-            const updateIntervalId = setInterval(() => {
-                // Cancel timer if shareInfoRemaining is no longer in the DOM
-                //   or remaining time is expired.
-                if (!shareInfoRemaining.isConnected || updateRemainingTime())
-                    clearInterval(updateIntervalId);
-            }, 5e3);
+            // The first call to `updateRemainingTime` should not create any timer
+            //   since `shareInfoRemaining` is not connected to the DOM.
+            if (!updateRemainingTime())
+                // 5 seconds is overkill, but it was chosen just to be sure.
+                setTimeout(updateRemainingTime, 5_000);
             shareInfo.appendChild(shareInfoRemaining);
         }
 
