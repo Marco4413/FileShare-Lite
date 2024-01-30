@@ -21,7 +21,7 @@ function AddEnterKeyPressListener(input, listener) {
 
 /** @param {HTMLTableSectionElement} usersTable */
 async function LoadUsers(usersTable) {
-    const res = await fetch("/api/admin/users", { "credentials": "include" })
+    const res = await FetchWLoading("/api/admin/users", { "credentials": "include" })
     usersTable.innerHTML = "";
     const users = await res.json();
     for (const user of users) {
@@ -55,7 +55,7 @@ async function LoadUsers(usersTable) {
                 extraParams += `&passw=${encodeURIComponent(passwInp.value)}`;
             if (adminInp.checked !== user.isAdmin)
                 extraParams += `&admin=${encodeURIComponent(adminInp.checked ? "true" : "false")}`;
-            const res = await fetch("/api/admin/users", {
+            const res = await FetchWLoading("/api/admin/users", {
                 "credentials": "include",
                 "method": "PATCH",
                 "headers": { "Content-Type": "application/x-www-form-urlencoded" },
@@ -69,7 +69,7 @@ async function LoadUsers(usersTable) {
         const deleteBtn = document.createElement("button");
         deleteBtn.innerText = "Delete";
         deleteBtn.addEventListener("click", async () => {
-            const res = await fetch("/api/admin/users", {
+            const res = await FetchWLoading("/api/admin/users", {
                 "credentials": "include",
                 "method": "DELETE",
                 "headers": { "Content-Type": "application/x-www-form-urlencoded" },
@@ -109,7 +109,7 @@ async function LoadUsers(usersTable) {
         createBtn.innerText = "Create";
         createBtn.addEventListener("click", async () => {
             if (unameInp.value.length > 0 && passwInp.value.length > 0) {
-                const res = await fetch("/api/admin/users", {
+                const res = await FetchWLoading("/api/admin/users", {
                     "credentials": "include",
                     "method": "POST",
                     "headers": { "Content-Type": "application/x-www-form-urlencoded" },

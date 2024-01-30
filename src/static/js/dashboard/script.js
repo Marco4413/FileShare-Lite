@@ -12,7 +12,7 @@ async function ReloadFS() {
 
 /** @param {HTMLUListElement} sharesList */
 async function LoadShares(sharesList) {
-    const res = await fetch("/api/share/all", { "credentials": "include" })
+    const res = await FetchWLoading("/api/share/all", { "credentials": "include" })
     sharesList.innerHTML = "";
     const shares = await res.json();
     for (const share of shares) {
@@ -22,7 +22,7 @@ async function LoadShares(sharesList) {
         shareDelete.classList.add("delete");
         shareDelete.innerText = "X";
         shareDelete.addEventListener("click", async () => {
-            const res = await fetch(`/api/share/${share.id}`, { "method": "DELETE", "credentials": "include" });
+            const res = await FetchWLoading(`/api/share/${share.id}`, { "method": "DELETE", "credentials": "include" });
             if (!res.ok)
                 window.alert(await res.text());
             LoadShares(sharesList);
@@ -83,7 +83,7 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
                     extraParams = `&maxDownloads=${encodeURIComponent(maxDownloads)}&maxAge=${encodeURIComponent(maxAge)}`;
                 }
 
-                const res = await fetch("/api/share", {
+                const res = await FetchWLoading("/api/share", {
                     "credentials": "include",
                     "method": "POST",
                     "headers": { "Content-Type": "application/x-www-form-urlencoded" },
@@ -98,7 +98,7 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
             deleteButton.classList.add("delete");
             deleteButton.innerText = "X";
             deleteButton.addEventListener("click", async () => {
-                const res = await fetch("/api/files", {
+                const res = await FetchWLoading("/api/files", {
                     "credentials": "include",
                     "method": "DELETE",
                     "headers": { "Content-Type": "application/x-www-form-urlencoded" },
@@ -159,7 +159,7 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
 }
 
 async function LoadFSFromPath(fsList, path) {
-    const res = await fetch(`/api/files?path=${path ?? ""}`, { "credentials": "include" });
+    const res = await FetchWLoading(`/api/files?path=${path ?? ""}`, { "credentials": "include" });
     const dirTree = await res.json();
     if (res.ok) {
         if (path)
@@ -200,7 +200,7 @@ async function UploadFiles(fileList) {
             req.send(data);
         })));
     }
-    return Promise.all(uploads);
+    return StartLoadingAttachedToPromise(Promise.all(uploads));
 }
 
 /** @param {HTMLInputElement} inputFile */
@@ -218,7 +218,7 @@ async function UploadInputFile(inputFile) {
 window.addEventListener("load", async () => {
     await ReloadShares();
     await ReloadFS();
-    const profReq = await fetch("/api/profile");
+    const profReq = await FetchWLoading("/api/profile");
     const profile = await profReq.json();
     const adminPanel = document.getElementById("admin-panel");
     if (profile.isAdmin)
