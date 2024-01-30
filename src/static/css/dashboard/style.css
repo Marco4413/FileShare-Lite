@@ -18,17 +18,17 @@ ul {
     padding-left: 10px;
 }
 
-.file, .share-item {
+.file {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
 }
 
 .share-item > * {
-    margin: 5px 5px;
+    padding: 5px;
 }
 
-.share-item > a {
+.share-item a {
     word-break: break-all;
 }
 

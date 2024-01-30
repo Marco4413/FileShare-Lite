@@ -1,7 +1,15 @@
+function WrapWithTD(content) {
+    const td = document.createElement("td");
+    if (content instanceof HTMLElement)
+        td.appendChild(content);
+    else td.innerText = content;
+    return td;
+}
+
 async function ReloadShares() {
-    /** @type {HTMLUListElement} */
-    const sharesList = document.getElementById("shares");
-    await LoadShares(sharesList);
+    /** @type {HTMLTableElement} */
+    const sharesTable = document.getElementById("shares");
+    await LoadShares(sharesTable);
 }
 
 async function ReloadFS() {
@@ -10,14 +18,15 @@ async function ReloadFS() {
     await LoadFSFromPath(fsList);
 }
 
-/** @param {HTMLUListElement} sharesList */
-async function LoadShares(sharesList) {
+/** @param {HTMLTableElement} sharesTable */
+async function LoadShares(sharesTable) {
     const res = await FetchWLoading("/api/share/all", { "credentials": "include" })
-    sharesList.innerHTML = "";
+    sharesTable.innerHTML = "";
     const shares = await res.json();
     for (const share of shares) {
-        const shareListItem = document.createElement("li");
-        shareListItem.classList.add("share-item");
+        const shareRow = document.createElement("tr");
+        shareRow.classList.add("share-item");
+
         const shareDelete = document.createElement("button");
         shareDelete.classList.add("delete");
         shareDelete.innerText = "X";
@@ -25,9 +34,9 @@ async function LoadShares(sharesList) {
             const res = await FetchWLoading(`/api/share/${share.id}`, { "method": "DELETE", "credentials": "include" });
             if (!res.ok)
                 window.alert(await res.text());
-            LoadShares(sharesList);
+            LoadShares(sharesTable);
         });
-        shareListItem.appendChild(shareDelete);
+        shareRow.appendChild(WrapWithTD(shareDelete));
 
         const shareInfo = document.createElement("div");
         shareInfo.classList.add("share-info");
@@ -59,14 +68,15 @@ async function LoadShares(sharesList) {
             }, 5e3);
             shareInfo.appendChild(shareInfoRemaining);
         }
-        shareListItem.appendChild(shareInfo);
+
+        shareRow.appendChild(WrapWithTD(shareInfo));
         const shareURL = document.createElement("a");
         shareURL.id = share.id;
         shareURL.href = `${location.origin}/share/${share.id}`;
         shareURL.innerText = share.path;
         shareURL.classList.add("share");
-        shareListItem.appendChild(shareURL);
-        sharesList.appendChild(shareListItem);
+        shareRow.appendChild(WrapWithTD(shareURL));
+        sharesTable.appendChild(shareRow);
     }
 }
 
