@@ -1,3 +1,5 @@
+/* MIT Copyright (c) 2024 [Marco4413](https://github.com/Marco4413) */
+
 function GetURLEncodedForm(form) {
     const data = new FormData(form);
     let urlencoded = "";
