@@ -73,6 +73,7 @@ async function LoadShares(sharesTable) {
         const shareURL = document.createElement("a");
         shareURL.id = share.id;
         shareURL.href = `${location.origin}/share/${share.id}`;
+        shareURL.target = "_blank";
         shareURL.innerText = share.path;
         shareURL.classList.add("share");
         shareRow.appendChild(WrapWithTD(shareURL));
