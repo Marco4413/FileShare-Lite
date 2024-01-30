@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/images/icon.png" type="image/x-icon">
+    <title>FileShare Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard/style.css">
+    <script src="/js/quietform.js"></script>
+    <script src="/js/dashboard/script.js"></script>
+</head>
+<body>
+    <nav>
+        <a href="/">HOME</a>
+        <a href="admin" id="admin-panel" class="collapsed">Admin</a>
+        <hr>
+    </nav>
+    <div>
+        <h2>Your Files&colon;</h2>
+        <div>
+            <label class="button" for="ufolder">Upload Folder</label>
+            <input class="hidden" type="file" name="ufolder" id="ufolder" oninput="UploadInputFile(this)" webkitdirectory>
+            <label class="button" for="ufile">Upload File</label>
+            <input class="hidden" type="file" name="ufile" id="ufile" oninput="UploadInputFile(this)">
+        </div>
+        <ul id="fs" class="fs-tree"></ul>
+    </div>
+    <hr>
+    <div>
+        <h2>Your Shares&colon;</h2>
+        <ul id="shares" style="list-style-type: none;"></ul>
+    </div>
+    <hr>
+    <div>
+        <h2>Change Password&colon;</h2>
+        <form action="/api/profile" _method="patch" class="quietform">
+            <input type="password" name="passw" placeholder="Old Password" required>
+            <input type="password" name="newpassw" placeholder="New Password" required>
+            <input type="submit" value="Confirm">
+            <input type="reset" value="Cancel">
+        </form>
+    </div>
+    <hr>
+    <form action="/logout" method="get">
+        <input type="submit" value="Logout">
+    </form>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/images/icon.png" type="image/x-icon">
+    <title>FileShare</title>
+    <link rel="stylesheet" href="/css/base.css">
+    <style>
+        nav {
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            translate: -50% -50%;
+        }
+
+        #logor, #logol {
+            position: fixed;
+            bottom: 0px;
+            right: 0px;
+            width: min(500px, 50vw, 50vh);
+            height: auto;
+            z-index: -1;
+        }
+
+        #logol {
+            right: initial;
+            left: 0px;
+            /* width: min(750px, 50vw, 50vh); */
+        }
+    </style>
+</head>
+<body>
+    <a href="https://github.com/Marco4413/FileShare-Lite" target="_blank">
+        <img id="logor" src="/images/logo.png" alt="">
+        <!-- PLEASE, DO NOT REMOVE THIS -->
+    </a>
+    <a class="hidden" href="https://example.org" target="_blank">
+        <img id="logol" src="/images/logol.png" alt="">
+        <!-- THIS CAN BE CHANGED TO YOUR LIKING -->
+    </a>
+    <nav>
+        <a href="/login">Login</a>
+        <a href="/dashboard">Dashboard</a>
+    </nav>
+</body>
+</html>

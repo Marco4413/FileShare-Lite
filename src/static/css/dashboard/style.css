@@ -1,0 +1,46 @@
+@import url('/css/base.css');
+
+.selected {
+    background-color: var(--hover-color-light);
+}
+
+.fs-tree {
+    list-style-position: inside;
+    list-style-type: none;
+}
+
+.fs-tree, .fs-tree li {
+    width: fit-content;
+    padding: 5px;
+}
+
+ul {
+    padding-left: 10px;
+}
+
+.file, .share-item {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.share-item > * {
+    margin: 5px 5px;
+}
+
+.share-item > a {
+    word-break: break-all;
+}
+
+.directory, .file {
+    width: fit-content;
+}
+
+.collapsed {
+    display: none;
+}
+
+.collapsible {
+    user-select: none;
+    cursor: pointer;
+}

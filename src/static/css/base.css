@@ -1,0 +1,67 @@
+/* LICENSE: https://github.com/JetBrains/JetBrainsMono/blob/master/OFL.txt */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
+
+/* MIT Copyright (c) 2023 [Marco4413](https://github.com/Marco4413) */
+/* Copied from https://github.com/Marco4413/Marco4413.github.io/blob/master/static/css/base.css */
+
+:root {
+    --background-color-darker: #e5e1e0;
+    --background-color-dark: #b0adb0;
+    --background-color-light: #38404c;
+    --hover-color-light: #d1c9c7;
+    --link-color: #336399;
+    --link-color-visited: #3a5db6;
+    --color-emphasis: #e86258;
+    --text-color-dark: #222a30;
+    --text-color-light: #010704;
+}
+
+* {
+    font-family: 'JetBrains Mono', Consolas, Courier, monospace;
+    color: var(--text-color-light);
+    text-emphasis-color: var(--color-emphasis);
+    text-decoration-color: var(--color-emphasis);
+}
+
+body {
+    background-color: var(--background-color-darker);
+    margin: 12pt;
+}
+
+nav > a {
+    font-size: 18pt;
+    font-weight: bold;
+    margin: auto 12pt;
+}
+
+.hidden {
+    display: none;
+}
+
+.button, button, input {
+    display: inline-block;
+    margin: 2px;
+    box-sizing: border-box;
+    font-size: 10pt;
+    background-color: var(--background-color-dark);
+    border: 2px solid var(--background-color-dark);
+    border-radius: 5px;
+    padding: 3px;
+}
+
+.button:hover, button:hover, input:hover {
+    background-color: var(--hover-color-light);
+}
+
+.button:hover, button:hover,
+input[type=button]:hover,
+input[type=submit]:hover,
+input[type=reset]:hover {
+    border-color: var(--hover-color-light);
+}
+
+button.share, button.delete {
+    aspect-ratio: 1;
+    height: 1.5rem;
+    width: auto;
+}
