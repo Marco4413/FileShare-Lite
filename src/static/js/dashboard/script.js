@@ -173,7 +173,15 @@ async function LoadFSFromPath(fsList, path) {
 async function UploadFiles(fileList) {
     const uploads = [];
     for (const file of fileList) {
-        const basePath = SelectedFolder.querySelector("ul")?.getAttribute("path") ?? "/";
+        let basePath = "/";
+        if (SelectedFolder) {
+            const targetFolder = SelectedFolder.querySelector("ul");
+            if (targetFolder) {
+                const targetPath = targetFolder.getAttribute("path");
+                if (targetPath) basePath = targetPath;
+            }
+        }
+
         uploads.push(new Promise(((res, rej) => {
             const data = new FormData();
             data.append(
@@ -198,10 +206,12 @@ async function UploadFiles(fileList) {
 /** @param {HTMLInputElement} inputFile */
 async function UploadInputFile(inputFile) {
     await UploadFiles(inputFile.files);
-    const modifiedFolder = SelectedFolder?.querySelector("ul");
-    if (modifiedFolder) {
-        const path = modifiedFolder.getAttribute("path");
-        await LoadFSFromPath(modifiedFolder, path)
+    if (SelectedFolder) {
+        const modifiedFolder = SelectedFolder.querySelector("ul");
+        if (modifiedFolder) {
+            const path = modifiedFolder.getAttribute("path");
+            await LoadFSFromPath(modifiedFolder, path)
+        } else await ReloadFS();
     } else await ReloadFS();
 }
 
