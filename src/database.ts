@@ -3,6 +3,7 @@ import sqlite3 from "sqlite3";
 import uuid from "short-uuid";
 
 import Hash from "./hash";
+import Permissions from "./permissions";
 
 const UUID = uuid();
 const SessionUUID = uuid(uuid.constants.cookieBase90);
@@ -20,6 +21,7 @@ export type User = {
     password: string,
     sessionId: string|null,
     sessionExpiryDate: number|null,
+    permissions: number,
     isAdmin: boolean
 };
 
@@ -43,6 +45,7 @@ async function CreateDatabase() {
         password TEXT,
         sessionId TEXT UNIQUE,
         sessionExpiryDate INTEGER DEFAULT 0,
+        permissions INTEGER DEFAULT ${Permissions.ChangePassword},
         isAdmin BOOLEAN DEFAULT false
     );
     `);
@@ -127,7 +130,7 @@ export async function GenerateUserSessionId(username: string, validFor: number):
 export async function GetUserByUsername(username: string, hidePassword: boolean = true): Promise<User|null> {
     const db = await GetDatabase();
     const user = await db.get(`
-    SELECT id, username${hidePassword ? "" : ", password"}, sessionExpiryDate, isAdmin
+    SELECT id, username${hidePassword ? "" : ", password"}, sessionExpiryDate, permissions, isAdmin
     FROM Users
     WHERE username = ?;
     `, username) ?? null;
@@ -138,7 +141,7 @@ export async function GetUserByUsername(username: string, hidePassword: boolean 
 export async function GetUserBySessionId(id: string, hidePassword: boolean = true): Promise<User|null> {
     const db = await GetDatabase();
     const user = await db.get(`
-    SELECT id, username${hidePassword ? "" : ", password"}, sessionExpiryDate, isAdmin
+    SELECT id, username${hidePassword ? "" : ", password"}, sessionExpiryDate, permissions, isAdmin
     FROM Users
     WHERE sessionId = ?;
     `, id) ?? null;
@@ -149,7 +152,7 @@ export async function GetUserBySessionId(id: string, hidePassword: boolean = tru
 export async function GetAllUsers(hidePassword: boolean = true): Promise<User[]> {
     const db = await GetDatabase();
     const users = await db.all(`
-    SELECT id, username${hidePassword ? "" : ", password"}, sessionExpiryDate, isAdmin
+    SELECT id, username${hidePassword ? "" : ", password"}, sessionExpiryDate, permissions, isAdmin
     FROM Users;
     `);
     users.forEach(u => u.isAdmin = u.isAdmin === 1);
@@ -166,6 +169,15 @@ export async function DeleteUserById(id: string): Promise<void> {
     DELETE FROM Share
     WHERE ownerId = ?;
     `, id);
+}
+
+export async function SetUserPermissionsById(id: string, permissions: number): Promise<void> {
+    const db = await GetDatabase();
+    await db.run(`
+    UPDATE Users
+    SET permissions = ?
+    WHERE id = ?;
+    `, Permissions.Clip(permissions), id);
 }
 
 export async function SetUserAdminById(id: string, admin: boolean): Promise<void> {
