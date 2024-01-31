@@ -43,6 +43,10 @@ nav > a {
     background-color: var(--background-color-selected);
 }
 
+thead { font-weight: bold; }
+th { font-weight: bold; }
+th, td { padding: .25em; }
+
 .button, button, input {
     display: inline-block;
     margin: 2px;
