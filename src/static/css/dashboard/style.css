@@ -1,7 +1,7 @@
 @import url('/css/base.css');
 
-.selected {
-    background-color: var(--hover-color-light);
+li.selected {
+    border-radius: 10px;
 }
 
 .fs-tree {

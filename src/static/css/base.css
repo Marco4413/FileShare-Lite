@@ -38,6 +38,10 @@ nav > a {
     display: none;
 }
 
+.selected {
+    background-color: var(--background-color-selected);
+}
+
 .button, button, input {
     display: inline-block;
     margin: 2px;
