@@ -19,17 +19,21 @@
     </nav>
     <div>
         <h2>Users&colon;</h2>
-        <table>
-            <thead>
-                <tr><td>ID</td><td>Username</td><td>Password</td><td>Perms</td><td>Admin</td></tr>
-            </thead>
-            <tbody id="users"></tbody>
-        </table>
+        <div class="scroll-container">
+            <table>
+                <thead>
+                    <tr><td>ID</td><td>Username</td><td>Password</td><td>Perms</td><td>Admin</td></tr>
+                </thead>
+                <tbody id="users"></tbody>
+            </table>
+        </div>
         <hr>
     </div>
     <div id="edit-perms-section">
         <h2>Edit Perms&colon;</h2>
-        <table id="edit-perms"></table>
+        <div class="scroll-container">
+            <table id="edit-perms"></table>
+        </div>
         <hr>
     </div>
     <form action="/logout" method="get">

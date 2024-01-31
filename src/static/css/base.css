@@ -47,6 +47,11 @@ thead { font-weight: bold; }
 th { font-weight: bold; }
 th, td { padding: .25em; }
 
+.scroll-container {
+    overflow-x: scroll;
+    padding-bottom: 10px;
+}
+
 .button, button, input {
     display: inline-block;
     margin: 2px;
