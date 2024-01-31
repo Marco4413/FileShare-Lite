@@ -23,7 +23,7 @@ li.directory {
 }
 
 .fs-tree .entry-head {
-    display: flex;
+    display: inline-flex;
     flex-wrap: nowrap;
     align-items: center;
 }
