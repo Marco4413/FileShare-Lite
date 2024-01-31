@@ -8,6 +8,7 @@ import multer from "multer";
 
 import Config from "./config";
 import * as Database from "./database";
+import Permissions from "./permissions";
 import { Session, Admin } from "./session";
 import { DirectoryToJSON, DownloadPath, DownloadResult, ToSharePath, TrimLeadingSlashes } from "./utils";
 
@@ -168,6 +169,9 @@ App.get("/api/profile", async (req, res) => {
 App.patch("/api/profile", async (req, res) => {
     if (!req.user) {
         res.sendStatus(500);
+        return;
+    } else if (!Permissions.Has(req.user.permissions, Permissions.ChangePassword)) {
+        res.status(403).send("Not enough privileges to change password.");
         return;
     } else if (!req.body.passw) {
         res.status(400).send("No password provided.");
