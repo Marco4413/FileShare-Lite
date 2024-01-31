@@ -34,7 +34,7 @@
         <table id="shares"></table>
     </div>
     <hr>
-    <div>
+    <div id="change-password" class="hidden">
         <h2>Change Password&colon;</h2>
         <form action="/api/profile" _method="patch" class="quietform">
             <input type="password" name="passw" placeholder="Old Password" required>
@@ -42,8 +42,8 @@
             <input type="submit" value="Confirm">
             <input type="reset" value="Cancel">
         </form>
+        <hr>
     </div>
-    <hr>
     <form action="/logout" method="get">
         <input type="submit" value="Logout">
     </form>

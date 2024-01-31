@@ -273,9 +273,15 @@ async function UploadInputFile(inputFile) {
 window.addEventListener("load", async () => {
     await ReloadShares();
     await ReloadFS();
+
     const profReq = await FetchWLoading("/api/profile");
     const profile = await profReq.json();
+
     const adminPanel = document.getElementById("admin-panel");
     if (profile.isAdmin)
-        adminPanel.classList.remove("collapsed");
+        adminPanel.classList.remove("hidden");
+
+    const changePassword = document.getElementById("change-password");
+    if (HasPermissions(profile.permissions, Permissions_ChangePassword, profile.isAdmin))
+        changePassword.classList.remove("hidden");
 });

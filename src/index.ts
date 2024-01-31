@@ -170,7 +170,7 @@ App.patch("/api/profile", async (req, res) => {
     if (!req.user) {
         res.sendStatus(500);
         return;
-    } else if (!Permissions.Has(req.user.permissions, Permissions.ChangePassword)) {
+    } else if (!Permissions.Has(req.user.permissions, Permissions.ChangePassword, req.user.isAdmin)) {
         res.status(403).send("Not enough privileges to change password.");
         return;
     } else if (!req.body.passw) {

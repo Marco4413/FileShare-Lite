@@ -5,9 +5,10 @@ const Permissions_All = Permissions_ChangePassword;
 /**
  * @param {number} perms
  * @param {number} required
+ * @param {boolean} admin
  * @returns {boolean}
  */
-function HasPermissions(perms, required) { return (perms & required) === required; }
+function HasPermissions(perms, required, admin = false) { return admin || (perms & required) === required; }
     
 /**
  * @param {number} perms
