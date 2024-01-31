@@ -122,6 +122,12 @@ App.patch("/api/admin/users", async (req, res) => {
         return;
     }
 
+    if (req.body.perms) {
+        const permissions = Number.parseInt(req.body.perms, 10);
+        if (!Number.isNaN(permissions))
+            await Database.SetUserPermissionsById(req.body.id, permissions);
+    }
+
     if (req.body.admin)
         await Database.SetUserAdminById(req.body.id, req.body.admin === "true");
     if (req.body.uname)
