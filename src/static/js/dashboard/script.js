@@ -286,6 +286,6 @@ window.addEventListener("load", async () => {
         adminPanel.classList.remove("hidden");
 
     const changePassword = document.getElementById("change-password");
-    if (HasPermissions(profile.permissions, Permissions_ChangePassword, profile.isAdmin))
+    if (HasPermissions(profile.permissions, Permissions.ChangePassword, profile.isAdmin))
         changePassword.classList.remove("hidden");
 });

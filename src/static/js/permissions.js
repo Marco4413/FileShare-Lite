@@ -1,6 +1,14 @@
 
-const Permissions_ChangePassword = 1;
-const Permissions_All = Permissions_ChangePassword;
+const Permissions_None = 0;
+const Permissions = {
+    ChangePassword: 1,
+    UploadFiles:    1 << 1,
+    DeleteFiles:    1 << 2,
+    DownloadFiles:  1 << 3,
+    CreateShare:    1 << 4,
+    DeleteShare:    1 << 5,
+};
+const Permissions_All = (Permissions.DeleteShare << 1) - 1;
     
 /**
  * @param {number} perms
@@ -14,4 +22,4 @@ function HasPermissions(perms, required, admin = false) { return admin || (perms
  * @param {number} perms
  * @returns {number}
  */
-function ClipPermissions(perms) { return perms & Permissions.All; }
+function ClipPermissions(perms) { return perms & Permissions_All; }
