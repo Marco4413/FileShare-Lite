@@ -3,7 +3,7 @@ import sqlite3 from "sqlite3";
 import uuid from "short-uuid";
 
 import Hash from "./hash";
-import Permissions from "./permissions";
+import * as Permissions from "./permissions";
 
 const UUID = uuid();
 const SessionUUID = uuid(uuid.constants.cookieBase90);
@@ -45,7 +45,7 @@ async function CreateDatabase() {
         password TEXT,
         sessionId TEXT UNIQUE,
         sessionExpiryDate INTEGER DEFAULT 0,
-        permissions INTEGER DEFAULT ${Permissions.ChangePassword},
+        permissions INTEGER DEFAULT 0,
         isAdmin BOOLEAN DEFAULT false
     );
     `);
@@ -103,7 +103,9 @@ export async function CreateUser(username: string, password: string, admin: bool
     const passwordHash = Hash(password, userId);
 
     const db = await GetDatabase();
-    const res = await db.run("INSERT INTO Users(id, username, password, isAdmin) VALUES (?, ?, ?, ?);", userId, username, passwordHash, admin);
+    const res = await db.run(`
+    INSERT INTO Users(id, username, password, permissions, isAdmin)
+    VALUES (?, ?, ?, ?, ?);`, userId, username, passwordHash, Permissions.Default, admin);
     return res.lastID ? userId : null;
 }
 

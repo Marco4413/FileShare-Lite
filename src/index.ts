@@ -8,7 +8,7 @@ import multer from "multer";
 
 import Config from "./config";
 import * as Database from "./database";
-import Permissions from "./permissions";
+import * as Permissions from "./permissions";
 import { Session, Admin } from "./session";
 import { DirectoryToJSON, DownloadPath, DownloadResult, ToSharePath, TrimLeadingSlashes } from "./utils";
 
@@ -171,7 +171,7 @@ App.patch("/api/profile", async (req, res) => {
         res.sendStatus(500);
         return;
     } else if (!Permissions.Has(req.user.permissions, Permissions.ChangePassword, req.user.isAdmin)) {
-        res.status(403).send("Not enough privileges to change password.");
+        res.status(403).send("Missing 'ChangePassword' permission.");
         return;
     } else if (!req.body.passw) {
         res.status(400).send("No password provided.");
@@ -199,6 +199,9 @@ App.get("/api/share/all", async (req, res) => {
 App.post("/api/share", async (req, res) => {
     if (!req.user) {
         res.sendStatus(500);
+        return;
+    } else if (!Permissions.Has(req.user.permissions, Permissions.CreateShare, req.user.isAdmin)) {
+        res.status(403).send("Missing 'CreateShare' permission.");
         return;
     } else if (!req.body.path) {
         res.status(400).send("No path for new share provided.");
@@ -244,6 +247,9 @@ App.delete("/api/share/:shareid", async (req, res) => {
     if (!req.user) {
         res.sendStatus(500);
         return;
+    } else if (!Permissions.Has(req.user.permissions, Permissions.DeleteShare, req.user.isAdmin)) {
+        res.status(403).send("Missing 'DeleteShare' permission.");
+        return;
     }
 
     const share = await Database.GetShareById(req.params.shareid);
@@ -282,6 +288,9 @@ App.get("/api/files/download", async (req, res) => {
     if (!req.user) {
         res.sendStatus(500);
         return;
+    } else if (!Permissions.Has(req.user.permissions, Permissions.DownloadFiles, req.user.isAdmin)) {
+        res.status(403).send("Missing 'DownloadFiles' permission.");
+        return;
     }
 
     const basePath = path.resolve("data/uploads");
@@ -309,6 +318,9 @@ App.get("/api/files/download", async (req, res) => {
 App.delete("/api/files", async (req, res) => {
     if (!req.user) {
         res.sendStatus(500);
+        return;
+    } else if (!Permissions.Has(req.user.permissions, Permissions.DeleteFiles, req.user.isAdmin)) {
+        res.status(403).send("Missing 'DeleteFiles' permission.");
         return;
     } else if (!req.body.path) {
         res.status(400).send("No path provided for file deletion.");
@@ -362,9 +374,22 @@ App.delete("/api/files", async (req, res) => {
     });
 });
 
-App.post("/api/files/upload", UploadUserFile.array("file"), (req, res) => {
-    res.sendStatus(200);
-});
+App.post("/api/files/upload",
+    (req, res, next) => {
+        if (!req.user) {
+            res.sendStatus(500);
+            return;
+        } else if (!Permissions.Has(req.user.permissions, Permissions.UploadFiles, req.user.isAdmin)) {
+            res.status(403).send("Missing 'UploadFiles' permission.");
+            return;
+        }
+        next();
+    },
+    UploadUserFile.array("file"),
+    (req, res) => {
+        res.sendStatus(200);
+    }
+);
 
 App.get("/share/:shareid", async (req, res) => {
     const shareId = req.params.shareid;
