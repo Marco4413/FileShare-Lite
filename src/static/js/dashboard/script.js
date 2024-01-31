@@ -248,14 +248,18 @@ async function UploadFiles(fileList) {
             data.append("file", file);
 
             const req = new XMLHttpRequest();
-            req.addEventListener("loadend", res);
+            req.addEventListener("loadend", () => {
+                if (req.status < 200 || req.status > 299)
+                    rej(req.responseText);
+                else res();
+            });
             req.addEventListener("abort", rej);
             req.addEventListener("error", rej);
             req.open("POST", "/api/files/upload");
             req.send(data);
         })));
     }
-    return StartLoadingAttachedToPromise(Promise.all(uploads));
+    return StartLoadingAttachedToPromise(Promise.all(uploads).catch(err => window.alert(err)));
 }
 
 /** @param {HTMLInputElement} inputFile */
