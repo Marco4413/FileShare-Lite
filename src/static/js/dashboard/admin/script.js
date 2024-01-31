@@ -29,6 +29,12 @@ async function LoadUsers(usersTable) {
     const res = await FetchWLoading("/api/admin/users", { "credentials": "include" })
     usersTable.innerHTML = "";
     const users = await res.json();
+    users.sort((a, b) => {
+        if (a.isAdmin === b.isAdmin)
+            return a.username.localeCompare(b.username);
+        return a.isAdmin && !b.isAdmin ? 0 : 1;
+    });
+
     for (const user of users) {
         if (user.id === permsSelUserId)
             PermsTable.Set(user.permissions, user.id);
