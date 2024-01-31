@@ -18,7 +18,11 @@ ul {
     padding-left: 10px;
 }
 
-.file {
+li.directory {
+    padding-right: 10px;
+}
+
+.fs-tree .entry-head {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
@@ -28,7 +32,8 @@ ul {
     padding: 5px;
 }
 
-.share-item a {
+.share-item a,
+.fs-tree .entry-name {
     word-break: break-all;
 }
 
@@ -38,6 +43,18 @@ ul {
 
 .directory, .file {
     width: fit-content;
+}
+
+.fs-tree .entry-controls,
+.fs-tree .entry-name,
+.fs-tree .entry-info {
+    padding-left: .5em;
+}
+
+.fs-tree .entry-controls,
+.fs-tree .entry-info {
+    display: flex;
+    align-items: center;
 }
 
 li.directory:not(:has(> ul.fs-tree > li.file, > ul.fs-tree > li.directory))::after {

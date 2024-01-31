@@ -101,13 +101,25 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
             return aIsFile && !bIsFile ? 1 : 0;
         });
     }
+
+    const isRoot = !(path.length > 0);
     for (const [name, data] of entries) {
         const entryPath = path + name;
         const entryHolder = document.createElement("li");
-        if (path.length > 0) {
+
+        const entryControls = document.createElement("div");
+        entryControls.classList.add("entry-controls");
+
+        const entryHead = document.createElement("div");
+        entryHead.classList.add("entry-head");
+        
+        entryHead.appendChild(entryControls);
+        entryHolder.appendChild(entryHead);
+        rootList.appendChild(entryHolder);
+
+        if (!isRoot) {
             const shareButton = document.createElement("button");
             shareButton.classList.add("share");
-            shareButton.innerText = "S";
             shareButton.addEventListener("click", async ev => {
                 let extraParams = "";
                 if (!ev.shiftKey) {
@@ -151,38 +163,53 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
                 else window.alert(await res.text());
             });
     
-            entryHolder.appendChild(deleteButton);
-            entryHolder.appendChild(shareButton);
+            entryControls.appendChild(deleteButton);
+            entryControls.appendChild(shareButton);
         }
+
+        const entryName = document.createElement(isRoot ? "span" : "a");
+        entryName.classList.add("entry-name");
+        entryName.innerText = name;
+        if (!isRoot) {
+            entryName.href = `/api/files/download?path=${encodeURIComponent(path + name)}`;
+            entryName.target = "_blank";
+        }
+        entryHead.appendChild(entryName);
 
         if (Array.isArray(data)) {
             entryHolder.classList.add("file");
             const [file] = data;
-            const entryName = document.createElement("span");
             const lastModified = new Date(file.lastModified);
-            entryName.innerText = `${name} ${file.size}B ${lastModified.toLocaleDateString()} ${lastModified.toLocaleTimeString()}`;
-            entryHolder.appendChild(entryName);
+            const entryInfo = document.createElement("span");
+            entryInfo.classList.add("entry-info");
+            entryInfo.innerText = ` ${file.size}B ${lastModified.toLocaleDateString()} ${lastModified.toLocaleTimeString()}`;
+            entryHead.appendChild(entryInfo);
         } else {
             entryHolder.classList.add("directory");
-            const entryChildrenHolder = document.createElement("ul");
-            entryChildrenHolder.classList.add("fs-tree", "collapsed");
-            const entryName = document.createElement("span");
-            entryName.classList.add("collapsible");
-            entryName.innerText = `> ${name}`;
-            entryName.addEventListener("click", () => {
+            entryHolder.addEventListener("click", ev => {
+                ev.stopPropagation();
                 if (SelectedFolder)
                     SelectedFolder.classList.remove("selected");
                 SelectedFolder = entryHolder;
                 SelectedFolder.classList.add("selected");
-                if (entryChildrenHolder.classList.toggle("collapsed"))
-                    entryName.innerText = `> ${name}`;
-                else entryName.innerText = `| ${name}`;
             });
-            entryHolder.appendChild(entryName);
+
+            const entryChildrenHolder = document.createElement("ul");
+            entryChildrenHolder.classList.add("fs-tree", "collapsed");
+
+            const entryExpander = document.createElement("button");
+            entryExpander.classList.add("collapsible", "control");
+            entryExpander.innerText = ">";
+            entryExpander.addEventListener("click", () => {
+                if (entryChildrenHolder.classList.toggle("collapsed"))
+                    entryExpander.innerText = ">";
+                else entryExpander.innerText = "|";
+            });
+
+            entryControls.appendChild(entryExpander);
             entryHolder.appendChild(entryChildrenHolder);
             LoadFSFromDirTree(entryChildrenHolder, data, entryPath + "/");
         }
-        rootList.appendChild(entryHolder);
     }
 }
 
