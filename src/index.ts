@@ -2,7 +2,6 @@ import fs from "node:fs";
 import https from "node:https";
 import path from "node:path";
 
-import archiver from "archiver";
 import cookieparser from "cookie-parser";
 import express from "express";
 import multer from "multer";
@@ -10,7 +9,7 @@ import multer from "multer";
 import Config from "./config";
 import * as Database from "./database";
 import { Session, Admin } from "./session";
-import { DirectoryToJSON, ToSharePath, TrimLeadingSlashes } from "./utils";
+import { DirectoryToJSON, DownloadPath, DownloadResult, ToSharePath, TrimLeadingSlashes } from "./utils";
 
 (async () => {
     if (Config.admin)
@@ -269,6 +268,34 @@ App.get("/api/files", async (req, res) => {
     });
 });
 
+App.get("/api/files/download", async (req, res) => {
+    if (!req.user) {
+        res.sendStatus(500);
+        return;
+    }
+
+    const basePath = path.resolve("data/uploads");
+    const userPath = path.resolve(basePath, req.user.id);
+    const fullPath = req.query.path
+        ? path.resolve(userPath, TrimLeadingSlashes(req.query.path as string))
+        : userPath;
+    
+    if (!fullPath.startsWith(userPath)) {
+        res.status(403).send("Forbidden path.");
+        return;
+    } else if (!fs.existsSync(fullPath)) {
+        res.status(404).send("Path not found.");
+        return;
+    }
+
+    try {
+        await DownloadPath(res, fullPath);
+    } catch (err) {
+        console.error(err);
+        res.sendStatus(500);
+    }
+});
+
 App.delete("/api/files", async (req, res) => {
     if (!req.user) {
         res.sendStatus(500);
@@ -351,26 +378,14 @@ App.get("/share/:shareid", async (req, res) => {
         return;
     }
 
-    fs.stat(fullPath, async (err, stat) => {
-        if (err) {
-            console.error(err);
-            res.sendStatus(500);
-        } else if (stat.isDirectory()) {
-            await Database.IncrementShareDownloadsById(shareId);
-            const dirName = path.basename(fullPath);
-            res.attachment(`${dirName}.zip`);
-            const archive = archiver("zip", { "zlib": { "level": 0 } })
-                .directory(fullPath, path.basename(dirName));
-            archive.pipe(res);
-            await archive.finalize();
-        } else if (stat.isFile()) {
-            await Database.IncrementShareDownloadsById(shareId);
-            res.download(fullPath);
-        } else {
+    try {
+        const dRes = await DownloadPath(res, fullPath, () => Database.IncrementShareDownloadsById(shareId));
+        if (dRes === DownloadResult.InvalidFileType)
             await Database.DeleteShareById(shareId);
-            res.status(404).send("Invalid share type.");
-        }
-    });
+    } catch (err) {
+        console.error(err);
+        res.sendStatus(500);
+    }
 });
 
 (() => {
