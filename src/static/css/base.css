@@ -65,8 +65,15 @@ input[type=reset]:hover {
     border-color: var(--hover-color-light);
 }
 
-button.share, button.delete {
+button.share, button.delete, button.control {
     aspect-ratio: 1;
+    font-size: 100%;
+    padding: 1px;
     height: 1.5rem;
     width: auto;
+}
+
+button.share {
+    background-image: url("/images/share-icon.png");
+    background-size: contain;
 }
