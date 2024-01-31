@@ -1,0 +1,7 @@
+@import url('/css/dashboard/style.css');
+
+table { text-align: center; }
+
+#edit-perms-section:has(> #edit-perms.collapsed) {
+    display: none;
+}

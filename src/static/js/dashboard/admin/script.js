@@ -1,3 +1,5 @@
+let PermsTable;
+
 async function ReloadUsers() {
     /** @type {HTMLUListElement} */
     const usersTable = document.getElementById("users");
@@ -21,10 +23,16 @@ function AddEnterKeyPressListener(input, listener) {
 
 /** @param {HTMLTableSectionElement} usersTable */
 async function LoadUsers(usersTable) {
+    const permsSelUserId = PermsTable.GetUID();
+    PermsTable.Set(null);
+
     const res = await FetchWLoading("/api/admin/users", { "credentials": "include" })
     usersTable.innerHTML = "";
     const users = await res.json();
     for (const user of users) {
+        if (user.id === permsSelUserId)
+            PermsTable.Set(user.permissions, user.id);
+
         const userRow = document.createElement("tr");
         const updateBtn = document.createElement("button");
 
@@ -42,6 +50,15 @@ async function LoadUsers(usersTable) {
         passwInp.placeholder = "Password";
         AddEnterKeyPressListener(passwInp, () => updateBtn.click());
 
+        const permsBtn = document.createElement("button");
+        permsBtn.innerText = "Edit";
+        permsBtn.addEventListener("click", async () => {
+            console.log(PermsTable.GetUID() === user.id);
+            if (PermsTable.GetUID() === user.id)
+                PermsTable.Set(null);
+            else PermsTable.Set(user.permissions, user.id);
+        });
+
         const adminInp = document.createElement("input");
         adminInp.type = "checkbox";
         adminInp.checked = user.isAdmin;
@@ -53,6 +70,8 @@ async function LoadUsers(usersTable) {
                 extraParams += `&uname=${encodeURIComponent(unameInp.value)}`;
             if (passwInp.value.length > 0)
                 extraParams += `&passw=${encodeURIComponent(passwInp.value)}`;
+            if (PermsTable.GetUID() === user.id)
+                extraParams += `&perms=${encodeURIComponent(PermsTable.Get())}`;
             if (adminInp.checked !== user.isAdmin)
                 extraParams += `&admin=${encodeURIComponent(adminInp.checked ? "true" : "false")}`;
             const res = await FetchWLoading("/api/admin/users", {
@@ -83,6 +102,7 @@ async function LoadUsers(usersTable) {
         userRow.appendChild(idTd);
         userRow.appendChild(WrapWithTD(unameInp));
         userRow.appendChild(WrapWithTD(passwInp));
+        userRow.appendChild(WrapWithTD(permsBtn));
         userRow.appendChild(WrapWithTD(adminInp));
         userRow.appendChild(WrapWithTD(updateBtn));
         userRow.appendChild(WrapWithTD(deleteBtn));
@@ -104,7 +124,8 @@ async function LoadUsers(usersTable) {
         passwInp.placeholder = "Password";
         AddEnterKeyPressListener(passwInp, () => createBtn.click());
 
-        const adminTd = document.createElement("td");
+        const padTd = document.createElement("td");
+        padTd.colSpan = 2;
 
         createBtn.innerText = "Create";
         createBtn.addEventListener("click", async () => {
@@ -127,12 +148,70 @@ async function LoadUsers(usersTable) {
         userRow.appendChild(idTd);
         userRow.appendChild(WrapWithTD(unameInp));
         userRow.appendChild(WrapWithTD(passwInp));
-        userRow.appendChild(WrapWithTD(adminTd));
+        userRow.appendChild(padTd);
         userRow.appendChild(WrapWithTD(createBtn));
         usersTable.appendChild(userRow);
     }
 }
 
-window.addEventListener("load", () => {
-    ReloadUsers();
+class EditPermsTable {
+    /** @param {HTMLTableElement} tbl */
+    constructor(tbl) {
+        tbl.innerHTML = "";
+
+        const thead = document.createElement("thead");
+        const headRow = document.createElement("tr");
+        thead.appendChild(headRow);
+        tbl.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        const bodyRow = document.createElement("tr");
+        tbody.appendChild(bodyRow);
+        tbl.appendChild(tbody);
+
+        const uidCaption = document.createElement("td");
+        uidCaption.innerText = "User ID";
+        headRow.appendChild(uidCaption);
+        const uidLabel = document.createElement("td");
+        bodyRow.appendChild(uidLabel);
+
+        const permInputs = [];
+        for (const [name, perm] of Object.entries(Permissions)) {
+            const caption = document.createElement("td");
+            caption.innerText = name;
+            headRow.appendChild(caption);
+
+            const check = document.createElement("input");
+            check.type = "checkbox";
+            bodyRow.appendChild(WrapWithTD(check));
+            permInputs.push({ check, perm });
+        }
+
+        this.GetUID = function () { return tbl.getAttribute("uid"); };
+        this.Get = function () {
+            let perms = Permissions_None;
+            for (const inp of permInputs) {
+                if (inp.check.checked)
+                    perms |= inp.perm;
+            }
+            return perms;
+        };
+        this.Set = function (perms, uid) {
+            if (tbl.classList.toggle("collapsed", perms == null)) {
+                tbl.removeAttribute("uid");
+                uidLabel.innerText = "none";
+                return;
+            }
+
+            tbl.setAttribute("uid", uid);
+            uidLabel.innerText = uid;
+            for (const inp of permInputs)
+                inp.check.checked = HasPermissions(perms, inp.perm);
+        };
+    }
+}
+
+window.addEventListener("load", async () => {
+    PermsTable = new EditPermsTable(document.getElementById("edit-perms"));
+    await ReloadUsers();
 });

@@ -6,8 +6,9 @@
     <link rel="shortcut icon" href="/images/icon.png" type="image/x-icon">
     <title>FileShare Admin Dashboard</title>
     <link rel="stylesheet" href="/css/loading.css">
-    <link rel="stylesheet" href="/css/dashboard/style.css">
+    <link rel="stylesheet" href="/css/dashboard/admin/style.css">
     <script src="/js/loading.js"></script>
+    <script src="/js/permissions.js"></script>
     <script src="/js/dashboard/admin/script.js"></script>
 </head>
 <body>
@@ -20,12 +21,17 @@
         <h2>Users&colon;</h2>
         <table>
             <thead>
-                <tr><td>ID</td><td>Username</td><td>Password</td><td>Admin</td></tr>
+                <tr><td>ID</td><td>Username</td><td>Password</td><td>Perms</td><td>Admin</td></tr>
             </thead>
             <tbody id="users"></tbody>
         </table>
+        <hr>
     </div>
-    <hr>
+    <div id="edit-perms-section">
+        <h2>Edit Perms&colon;</h2>
+        <table id="edit-perms"></table>
+        <hr>
+    </div>
     <form action="/logout" method="get">
         <input type="submit" value="Logout">
     </form>
