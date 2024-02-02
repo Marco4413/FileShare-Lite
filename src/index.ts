@@ -304,10 +304,10 @@ App.get("/api/files/download", async (req, res) => {
         : userPath;
     
     if (!fullPath.startsWith(userPath)) {
-        res.status(403).send("Forbidden path.");
+        res.status(403).send("Invalid path.");
         return;
     } else if (!fs.existsSync(fullPath)) {
-        res.status(404).send("Path not found.");
+        res.status(404).send("File not found.");
         return;
     }
 
