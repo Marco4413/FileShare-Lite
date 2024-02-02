@@ -57,7 +57,6 @@ export function DownloadPath(res: express.Response, pt: string, onDownload?: () 
                 res.download(pt);
                 resolve(DownloadResult.Downloaded);
             } else {
-                res.status(404).send("Invalid file type.");
                 resolve(DownloadResult.InvalidFileType);
             }
         });
