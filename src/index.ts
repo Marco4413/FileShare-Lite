@@ -447,7 +447,7 @@ App.get("/share/:shareid", async (req, res) => {
     }
 });
 
-App.get("*", (req, res) => {
+App.get(/^\/(?!api).*/, (req, res) => {
     JustRender(res.status(404), "errors/404", { "path": req.path });
 });
 
