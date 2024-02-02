@@ -11,6 +11,7 @@ import * as Database from "./database";
 import * as Permissions from "./permissions";
 import { Session, Admin } from "./session";
 import { DirectoryToJSON, DownloadPath, DownloadResult, ToSharePath, TrimLeadingSlashes } from "./utils";
+import Views from "./views";
 
 (async () => {
     if (Config.admin)
@@ -50,6 +51,9 @@ const UploadUserFile = multer({
 });
 
 const App = express();
+App.engine("html", Views(true));
+App.set("view engine", "html");
+App.set('views', path.join(__dirname, "views"));
 App.use(express.urlencoded({"extended": true}),
         cookieparser(Config.cookieSecrets));
 App.use("/api", Session());
