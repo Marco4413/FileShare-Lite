@@ -17,7 +17,7 @@ export function Session(redirect?: string) {
         )) {
             if (redirect)
                 res.redirect(redirect);
-            else res.status(403).send("Session expired.");
+            else res.status(401).send("Session expired.");
             return;
         }
 
