@@ -396,15 +396,23 @@ App.post("/api/files/upload",
 );
 
 App.get("/share/:shareid", async (req, res) => {
-    const shareId = req.params.shareid;
-    if (await Database.IsShareExpired(shareId)) {
-        res.status(400).send("Share expired.");
+    const id = req.params.shareid;
+    if (await Database.IsShareExpired(id)) {
+        await JustRender(
+            res.status(404),
+            "errors/share",
+            { id, "statusCode": 404, "message": "Share expired." }
+        );
         return;
     }
 
-    const share = await Database.GetShareById(shareId);
+    const share = await Database.GetShareById(id);
     if (!share) {
-        res.status(404).send("Share not found.");
+        await JustRender(
+            res.status(404),
+            "errors/share",
+            { id, "statusCode": 404, "message": "Share not found." }
+        );
         return;
     }
 
@@ -412,18 +420,30 @@ App.get("/share/:shareid", async (req, res) => {
     const fullPath = path.resolve(basePath, share.ownerId, share.path);
     
     if (!fullPath.startsWith(basePath) || !fs.existsSync(fullPath)) {
-        await Database.DeleteShareById(shareId);
-        res.status(404).send("Invalid share.");
+        await JustRender(
+            res.status(404),
+            "errors/share",
+            { id, "statusCode": 404, "message": "Share was deleted." }
+        );
         return;
     }
 
     try {
-        const dRes = await DownloadPath(res, fullPath, () => Database.IncrementShareDownloadsById(shareId));
-        if (dRes === DownloadResult.InvalidFileType)
-            await Database.DeleteShareById(shareId);
+        const dRes = await DownloadPath(res, fullPath, () => Database.IncrementShareDownloadsById(id));
+        if (dRes === DownloadResult.InvalidFileType) {
+            await JustRender(
+                res.status(404),
+                "errors/share",
+                { id, "statusCode": 404, "message": "Invalid share." }
+            );
+        }
     } catch (err) {
         console.error(err);
-        res.sendStatus(500);
+        await JustRender(
+            res.status(500),
+            "errors/share",
+            { id, "statusCode": 500, "message": "Internal server error." }
+        );
     }
 });
 
