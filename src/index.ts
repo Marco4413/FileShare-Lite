@@ -10,7 +10,7 @@ import Config from "./config";
 import * as Database from "./database";
 import * as Permissions from "./permissions";
 import { Session, Admin } from "./session";
-import { DirectoryToJSON, DownloadPath, DownloadResult, ToSharePath, TrimLeadingSlashes } from "./utils";
+import { DirectoryToJSON, DownloadPath, DownloadResult, JustRender, ToSharePath, TrimLeadingSlashes } from "./utils";
 import Views from "./views";
 
 (async () => {
@@ -60,7 +60,7 @@ App.use("/api", Session());
 App.use("/dashboard", Session("/login"));
 App.use("/api/admin", Admin());
 App.use("/dashboard/admin", Admin("/dashboard"));
-App.use(express.static(path.join(__dirname, "static")));
+App.use(express.static(path.join(__dirname, "static"), { "fallthrough": true }));
 
 App.post("/login", async (req, res) => {
     if (!(
@@ -425,6 +425,10 @@ App.get("/share/:shareid", async (req, res) => {
         console.error(err);
         res.sendStatus(500);
     }
+});
+
+App.get("*", (req, res) => {
+    JustRender(res.status(404), "errors/404", { "path": req.path });
 });
 
 (() => {
