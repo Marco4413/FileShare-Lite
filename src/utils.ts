@@ -63,3 +63,18 @@ export function DownloadPath(res: express.Response, pt: string, onDownload?: () 
         });
     });
 }
+
+export async function JustRender(res: express.Response, view: string, options?: object) {
+    return new Promise<void>((resolve, reject) => {
+        res.render(view, options, (err, html) => {
+            if (err) {
+                res.sendStatus(500);
+                reject(err);
+                return;
+            }
+            res.write(html);
+            res.end();
+            resolve();
+        });
+    });
+}
