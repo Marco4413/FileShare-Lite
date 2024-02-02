@@ -12,19 +12,27 @@ function QuietForm(form) {
     form.classList.add("quietform");
     form.addEventListener("submit", ev => {
         ev.preventDefault();
-        if (!form.reportValidity())
-            return;
         let action = form.action;
+        let method = form.getAttribute("_method") ?? form.method;
         let okredirect = form.getAttribute("okredirect");
+        let noValidate = form.noValidate;
+
         if (ev.submitter) {
-            const formaction = ev.submitter.getAttribute("formaction");
-            if (formaction)
-                action = formaction;
-            const sokredirect = ev.submitter.getAttribute("okredirect");
-            if (sokredirect)
-                okredirect = sokredirect;
+            /** @type {HTMLInputElement} */
+            const input = ev.submitter;
+            const sokredirect = input.getAttribute("okredirect");
+            if (sokredirect) okredirect = sokredirect;
+
+            const sformmethod = input.getAttribute("_formmethod") ?? input.formMethod;
+            if (sformmethod.length > 0) method = sformmethod;
+            
+            if (input.formAction) action = input.formAction;
+            noValidate = noValidate || input.formNoValidate;
         }
-        const method = form.getAttribute("_method") ?? form.method;
+
+        if (!noValidate && !form.reportValidity())
+            return;
+
         fetch(action, {
             "credentials": "same-origin",
             "method": method.toUpperCase(),
