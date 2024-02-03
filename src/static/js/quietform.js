@@ -3,7 +3,7 @@
 function GetURLEncodedForm(form) {
     const data = new FormData(form);
     let urlencoded = "";
-    data.forEach((v, k) => urlencoded += `&${encodeURI(k)}=${encodeURIComponent(v)}`);
+    data.forEach((v, k) => urlencoded += `&${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
     return urlencoded.substring(1);
 }
 
