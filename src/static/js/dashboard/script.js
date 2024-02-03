@@ -208,7 +208,12 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
 
             entryControls.appendChild(entryExpander);
             entryHolder.appendChild(entryChildrenHolder);
-            LoadFSFromDirTree(entryChildrenHolder, data, entryPath + "/");
+            LoadFSFromDirTree(
+                entryChildrenHolder, data,
+                entryPath.endsWith("/")
+                    ? entryPath
+                    : entryPath + "/"
+            );
         }
     }
 }
