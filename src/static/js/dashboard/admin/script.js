@@ -94,6 +94,8 @@ async function LoadUsers(usersTable) {
         const deleteBtn = document.createElement("button");
         deleteBtn.innerText = "Delete";
         deleteBtn.addEventListener("click", async () => {
+            if (!window.confirm(`Are you sure you want to delete user '${user.username}'?\nWARNING: You'll need to manually delete its folder from the server.`))
+                return;
             const res = await FetchWLoading("/api/admin/users", {
                 "credentials": "include",
                 "method": "DELETE",
