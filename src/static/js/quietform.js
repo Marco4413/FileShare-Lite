@@ -13,7 +13,7 @@ function QuietForm(form) {
     form.addEventListener("submit", ev => {
         ev.preventDefault();
         let action = form.action;
-        let method = form.getAttribute("_method") ?? form.method;
+        let method = (form.getAttribute("_method") ?? form.method).toUpperCase();
         let okredirect = form.getAttribute("okredirect");
         let noValidate = form.noValidate;
 
@@ -24,7 +24,7 @@ function QuietForm(form) {
             if (sokredirect) okredirect = sokredirect;
 
             const sformmethod = input.getAttribute("_formmethod") ?? input.formMethod;
-            if (sformmethod.length > 0) method = sformmethod;
+            if (sformmethod.length > 0) method = sformmethod.toUpperCase();
             
             if (input.formAction) action = input.formAction;
             noValidate = noValidate || input.formNoValidate;
@@ -33,12 +33,23 @@ function QuietForm(form) {
         if (!noValidate && !form.reportValidity())
             return;
 
-        fetch(action, {
-            "credentials": "same-origin",
-            "method": method.toUpperCase(),
+        /** @type {RequestInit} */
+        const reqInit = {
+            method,
             "headers": { "Content-Type": "application/x-www-form-urlencoded" },
-            "body": GetURLEncodedForm(form)
-        }).then(async res => {
+            "credentials": "same-origin"
+        };
+
+        switch(method) {
+        case "GET":
+        case "HEAD":
+            action += `?${GetURLEncodedForm(form)}`;
+            break;
+        default:
+            reqInit.body = GetURLEncodedForm(form);
+        }
+
+        fetch(action, reqInit).then(async res => {
             if (res.ok) {
                 if (okredirect)
                     window.location.href = okredirect;
