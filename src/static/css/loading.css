@@ -18,27 +18,25 @@
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-#loading .widget {
+@keyframes spin {
+    0% { rotate: 0deg; }
+    100% { rotate: 360deg; }
+}
+
+#loading::after {
+    box-sizing: content-box;
+    /* Center the spinner */
+    content: '';
     position: absolute;
     top: 50%;
     left: 50%;
     translate: -50% -50%;
-}
-
-@keyframes spin {
-    0% {
-        rotate: 0deg;
-    }
-    100% {
-        rotate: 360deg;
-    }
-}
-
-#loading .spinner {
+    /* Set size of square */
     --width: min(12vw, 12vh);
     aspect-ratio: 1;
     width: var(--width);
     height: auto;
+    /* Animate and add round borders */
     animation: spin 1.5s cubic-bezier(0.5, 0.610, 0.355, .5) infinite;
     border: calc(var(--width) * .15) solid var(--background-color-darker);
     border-top-color: var(--background-color-light);
