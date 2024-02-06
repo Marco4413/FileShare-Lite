@@ -267,7 +267,7 @@ App.delete("/api/share/:shareid", async (req, res) => {
     }
 });
 
-App.get("/api/files", async (req, res) => {
+App.get("/api/files", (req, res) => {
     if (!req.user) {
         res.sendStatus(500);
         return;
@@ -276,14 +276,14 @@ App.get("/api/files", async (req, res) => {
     const fullPath = req.query.path
         ? path.resolve("data/uploads", req.user.id, TrimLeadingSlashes(req.query.path as string))
         : path.resolve("data/uploads", req.user.id);
-    fs.mkdir(fullPath, { "recursive": true }, err => {
+    fs.mkdir(fullPath, { "recursive": true }, async err => {
         if (err) {
             console.error(err);
             res.sendStatus(500);
             return
         }
 
-        const dir = DirectoryToJSON(fullPath, Config.maxFilesGetDepth);
+        const dir = await DirectoryToJSON(fullPath, Config.maxFilesGetDepth);
         res.send(dir);
     });
 });
