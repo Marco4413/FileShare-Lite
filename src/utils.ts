@@ -39,13 +39,13 @@ export function ToSharePath(pt: string): string {
 }
 
 export enum DownloadResult { Downloaded, InvalidFileType };
-export async function DownloadPath(res: express.Response, pt: string, onDownload?: () => Promise<void>): Promise<DownloadResult> {
+export async function DownloadPath(res: express.Response, pt: string, compressionLevel: number = 0, onDownload?: () => Promise<void>): Promise<DownloadResult> {
     const stat = await fs.stat(pt);
     if (stat.isDirectory()) {
         if (onDownload) onDownload();
         const dirName = path.basename(pt);
         res.attachment(`${dirName}.zip`);
-        const archive = archiver("zip", { "zlib": { "level": 0 } })
+        const archive = archiver("zip", { "zlib": { "level": compressionLevel } })
             .directory(pt, path.basename(dirName));
         archive.pipe(res);
         await archive.finalize();

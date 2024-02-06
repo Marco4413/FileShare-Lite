@@ -23,6 +23,7 @@ export type Config = {
     port: number,
     key?: string,
     cert?: string,
+    downloadCompressionLevel: number,
     maxFilesGetDepth: number,
     rmdirDelay: number
 };
@@ -34,6 +35,7 @@ export function GetDefaultConfig(): Config {
         "port": 443,
         "key": "data/private.key",
         "cert": "data/certificate.crt",
+        "downloadCompressionLevel": 0,
         "maxFilesGetDepth": -1,
         "rmdirDelay": 5e3
     };

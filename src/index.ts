@@ -429,7 +429,10 @@ App.get("/share/:shareid", async (req, res) => {
     }
 
     try {
-        const dRes = await DownloadPath(res, fullPath, () => Database.IncrementShareDownloadsById(id));
+        const dRes = await DownloadPath(
+            res, fullPath, Config.downloadCompressionLevel,
+            () => Database.IncrementShareDownloadsById(id)
+        );
         if (dRes === DownloadResult.InvalidFileType) {
             await JustRender(
                 res.status(404),
