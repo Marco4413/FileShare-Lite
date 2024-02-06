@@ -1,6 +1,9 @@
 /* MIT Copyright (c) 2024 [Marco4413](https://github.com/Marco4413) */
 
+let _Loads = 0;
 function LoadingStart() {
+    if (_Loads++ > 0)
+        return;
     const loading = document.getElementById("loading");
     if (!loading) {
         console.warn("No #loading element found.");
@@ -10,6 +13,8 @@ function LoadingStart() {
 }
 
 function LoadingEnd() {
+    if (--_Loads > 0)
+        return;
     const loading = document.getElementById("loading");
     if (!loading) {
         console.warn("No #loading element found.");
