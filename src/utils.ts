@@ -1,4 +1,4 @@
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
 
 import archiver from "archiver";
@@ -12,11 +12,11 @@ export type File = {
 
 export type Directory = { [index: string]: [File]|Directory|null };
 
-export function DirectoryToJSON(basePath: string, depth: number = -1): Directory|null {
+export async function DirectoryToJSON(basePath: string, depth: number = -1): Promise<Directory|null> {
     if (depth === 0) return null;
     const dir: Directory = {};
-    for (const file of fs.readdirSync(basePath)) {
-        const stat = fs.statSync(path.join(basePath, file));
+    for (const file of await fs.readdir(basePath)) {
+        const stat = await fs.stat(path.join(basePath, file));
         if (stat.isFile()) {
             dir[file] = [{
                 "size": stat.size,
@@ -24,7 +24,7 @@ export function DirectoryToJSON(basePath: string, depth: number = -1): Directory
                 "lastModified": stat.mtimeMs
             }];
         } else if (stat.isDirectory()) {
-            dir[file] = DirectoryToJSON(path.join(basePath, file), depth-1);
+            dir[file] = await DirectoryToJSON(path.join(basePath, file), depth-1);
         }
     }
     return dir;
@@ -39,29 +39,23 @@ export function ToSharePath(pt: string): string {
 }
 
 export enum DownloadResult { Downloaded, InvalidFileType };
-export function DownloadPath(res: express.Response, pt: string, onDownload?: () => Promise<void>): Promise<DownloadResult> {
-    return new Promise<DownloadResult>((resolve, reject) => {
-        fs.stat(pt, async (err, stat) => {
-            if (err) {
-                reject(err);
-            } else if (stat.isDirectory()) {
-                if (onDownload) onDownload();
-                const dirName = path.basename(pt);
-                res.attachment(`${dirName}.zip`);
-                const archive = archiver("zip", { "zlib": { "level": 0 } })
-                    .directory(pt, path.basename(dirName));
-                archive.pipe(res);
-                await archive.finalize();
-                resolve(DownloadResult.Downloaded);
-            } else if (stat.isFile()) {
-                if (onDownload) onDownload();
-                res.download(pt);
-                resolve(DownloadResult.Downloaded);
-            } else {
-                resolve(DownloadResult.InvalidFileType);
-            }
-        });
-    });
+export async function DownloadPath(res: express.Response, pt: string, onDownload?: () => Promise<void>): Promise<DownloadResult> {
+    const stat = await fs.stat(pt);
+    if (stat.isDirectory()) {
+        if (onDownload) onDownload();
+        const dirName = path.basename(pt);
+        res.attachment(`${dirName}.zip`);
+        const archive = archiver("zip", { "zlib": { "level": 0 } })
+            .directory(pt, path.basename(dirName));
+        archive.pipe(res);
+        await archive.finalize();
+        return DownloadResult.Downloaded;
+    } else if (stat.isFile()) {
+        if (onDownload) onDownload();
+        res.download(pt);
+        return DownloadResult.Downloaded;
+    }
+    return DownloadResult.InvalidFileType;
 }
 
 export async function JustRender(res: express.Response, view: string, options?: object) {
