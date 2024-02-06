@@ -216,7 +216,7 @@ App.post("/api/share", async (req, res) => {
     if (sharePath === ".") {
         res.status(400).send("Can't share user folder.");
         return;
-    } else if (await Database.HasShareByPath(sharePath)) {
+    } else if (await Database.HasShareByPath(req.user.id, sharePath)) {
         res.status(400).send("Share already exists.");
         return;
     }

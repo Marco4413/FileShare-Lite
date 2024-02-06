@@ -240,22 +240,31 @@ export async function IncrementShareDownloadsById(id: string): Promise<void> {
     `, id);
 }
 
-export async function IsDuplicateShare(id: string, path: string): Promise<boolean> {
+export async function IsDuplicateShare(ownerId: string, id: string, path: string): Promise<boolean> {
     const db = await GetDatabase();
-    return (await db.get("SELECT id FROM Share WHERE id = ? OR path = ?;", id, path)) !== undefined;
+    return (await db.get(`
+    SELECT id
+    FROM Share
+    WHERE ownerId = ?
+      AND (id = ? OR path = ?);
+    `, ownerId, id, path)) !== undefined;
 }
 
-export async function HasShareByPath(path: string): Promise<boolean> {
+export async function HasShareByPath(ownerId: string, path: string): Promise<boolean> {
     const db = await GetDatabase();
-    return (await db.get("SELECT path FROM Share WHERE path = ?;", path)) !== undefined;
+    return (await db.get(`
+    SELECT path
+    FROM Share
+    WHERE ownerId = ? AND path = ?;
+    `, ownerId, path)) !== undefined;
 }
 
 export async function CreateUserShare(username: string, path: string, maxDownloads: number = 0, expiryDate: number = 0): Promise<string|null> {
-    const shareId = UUID.generate();
-    if (await IsDuplicateShare(shareId, path))
-        return null;
     const user = await GetUserByUsername(username);
     if (!user)
+        return null;
+    const shareId = UUID.generate();
+    if (await IsDuplicateShare(user.id, shareId, path))
         return null;
     const db = await GetDatabase();
     const res = await db.run(`
