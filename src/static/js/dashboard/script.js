@@ -91,6 +91,7 @@ let SelectedFolder;
 function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
     rootList.innerHTML = "";
     rootList.setAttribute("path", path);
+    rootList.classList.add("loaded");
     const entries = Object.entries(dirTree);
     if (sorted) {
         entries.sort((a, b) => {
@@ -194,8 +195,18 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
                 SelectedFolder.classList.add("selected");
             });
 
+            const dirPath = entryPath.endsWith("/")
+                ? entryPath : entryPath + "/"
+
             const entryChildrenHolder = document.createElement("ul");
             entryChildrenHolder.classList.add("fs-tree", "collapsed");
+            // If entryChildrenHolder is not loaded, LoadFSFromPath is not called.
+            // Hence, selecting it and uploading files to it can lead to unexpected
+            //  behaviour if path is not set.
+            entryChildrenHolder.setAttribute("path", dirPath);
+
+            let loaded = data != null;
+            entryChildrenHolder.classList.toggle("loaded", loaded);
 
             const entryExpander = document.createElement("button");
             entryExpander.classList.add("collapsible", "control");
@@ -204,16 +215,16 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
                 if (entryChildrenHolder.classList.toggle("collapsed"))
                     entryExpander.innerText = ">";
                 else entryExpander.innerText = "|";
+                if (!loaded) {
+                    loaded = true;
+                    entryChildrenHolder.classList.add("loaded");
+                    LoadFSFromPath(entryChildrenHolder, dirPath);
+                }
             });
 
             entryControls.appendChild(entryExpander);
             entryHolder.appendChild(entryChildrenHolder);
-            LoadFSFromDirTree(
-                entryChildrenHolder, data,
-                entryPath.endsWith("/")
-                    ? entryPath
-                    : entryPath + "/"
-            );
+            if (loaded) LoadFSFromDirTree(entryChildrenHolder, data, dirPath);
         }
     }
 }

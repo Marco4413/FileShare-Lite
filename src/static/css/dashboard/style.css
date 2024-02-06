@@ -59,7 +59,14 @@ li.directory {
 
 li.directory:not(:has(> ul.fs-tree > li.file, > ul.fs-tree > li.directory))::after {
     content: "<EMPTY>";
-    padding: 5px;
+    margin: 5px;
+    padding: 1px;
+}
+
+li.directory:has(> ul.fs-tree:not(.loaded))::after {
+    content: "<NOT LOADED>" !important;
+    background-color: var(--color-emphasis);
+    border-radius: 10px;
 }
 
 .collapsed {
