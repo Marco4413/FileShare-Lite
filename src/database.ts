@@ -54,7 +54,7 @@ async function CreateDatabase() {
     IF NOT EXISTS
     Share(
         id TEXT PRIMARY KEY,
-        path TEXT UNIQUE,
+        path TEXT,
         ownerId TEXT,
         downloads INTEGER DEFAULT 0,
         maxDownloads INTEGER DEFAULT 0,
