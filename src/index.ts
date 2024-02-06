@@ -462,8 +462,12 @@ App.get(/^\/(?!api).*/, (req, res) => {
             "key": fs.readFileSync(Config.key),
             "cert": fs.readFileSync(Config.cert)
         }, App);
+        console.log(`https://127.0.0.1:${Config.port}`);
+        console.log(`https://localhost:${Config.port}`);
         Server.listen(Config.port);
     } else {
+        console.log(`http://127.0.0.1:${Config.port}`);
+        console.log(`http://localhost:${Config.port}`);
         App.listen(Config.port);
     }
 })();
