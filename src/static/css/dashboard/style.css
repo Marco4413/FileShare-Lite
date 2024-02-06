@@ -1,5 +1,9 @@
 @import url('/css/base.css');
 
+#fs, #shares {
+    min-width: 768px;
+}
+
 li.selected {
     border-radius: 10px;
 }

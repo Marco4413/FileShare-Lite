@@ -27,12 +27,16 @@
             <label class="button" for="ufile">Upload File</label>
             <input class="hidden" type="file" name="ufile" id="ufile" oninput="UploadInputFile(this)">
         </div>
-        <ul id="fs" class="fs-tree"></ul>
+        <div class="scroll-container">
+            <ul id="fs" class="fs-tree"></ul>
+        </div>
     </div>
     <hr>
     <div>
         <h2>Your Shares&colon;</h2>
-        <table id="shares"></table>
+        <div class="scroll-container">
+            <table id="shares"></table>
+        </div>
     </div>
     <hr>
     <div id="change-password" class="hidden">
