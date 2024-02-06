@@ -10,9 +10,10 @@ export type File = {
     lastModified: number
 };
 
-export type Directory = { [index: string]: [File]|Directory };
+export type Directory = { [index: string]: [File]|Directory|null };
 
-export function DirectoryToJSON(basePath: string): Directory {
+export function DirectoryToJSON(basePath: string, depth: number = -1): Directory|null {
+    if (depth === 0) return null;
     const dir: Directory = {};
     for (const file of fs.readdirSync(basePath)) {
         const stat = fs.statSync(path.join(basePath, file));
@@ -23,7 +24,7 @@ export function DirectoryToJSON(basePath: string): Directory {
                 "lastModified": stat.mtimeMs
             }];
         } else if (stat.isDirectory()) {
-            dir[file] = DirectoryToJSON(path.join(basePath, file));
+            dir[file] = DirectoryToJSON(path.join(basePath, file), depth-1);
         }
     }
     return dir;
