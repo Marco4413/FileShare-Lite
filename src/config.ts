@@ -23,6 +23,7 @@ export type Config = {
     port: number,
     key?: string,
     cert?: string,
+    maxFilesGetDepth: number,
     rmdirDelay: number
 };
 
@@ -33,6 +34,7 @@ export function GetDefaultConfig(): Config {
         "port": 443,
         "key": "data/private.key",
         "cert": "data/certificate.crt",
+        "maxFilesGetDepth": -1,
         "rmdirDelay": 5e3
     };
 }

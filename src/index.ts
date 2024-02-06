@@ -283,7 +283,7 @@ App.get("/api/files", async (req, res) => {
             return
         }
 
-        const dir = DirectoryToJSON(fullPath);
+        const dir = DirectoryToJSON(fullPath, Config.maxFilesGetDepth);
         res.send(dir);
     });
 });
