@@ -455,6 +455,16 @@ App.get(/^\/(?!api).*/, (req, res) => {
     JustRender(res.status(404), "errors/404", { "path": req.path });
 });
 
+App.use("/api", (err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    Logger.Error(err.stack);
+    res.status(500).send(`Error: ${err.message}`);
+});
+
+App.use(/^\/(?!api).*/, (err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    Logger.Error(err.stack);
+    JustRender(res.status(500), "errors/500", { "message": err.message });
+});
+
 (() => {
     if (Config.key || Config.cert) {
         if (!(Config.key && Config.cert)) {
