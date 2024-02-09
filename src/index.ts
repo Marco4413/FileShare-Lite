@@ -8,6 +8,7 @@ import multer from "multer";
 
 import Config from "./config";
 import * as Database from "./database";
+import Logger from "./logger";
 import * as Permissions from "./permissions";
 import { Session, Admin } from "./session";
 import { DirectoryToJSON, DownloadPath, DownloadResult, JustRender, ToSharePath, TrimLeadingSlashes } from "./utils";
@@ -278,7 +279,7 @@ App.get("/api/files", (req, res) => {
         : path.resolve("data/uploads", req.user.id);
     fs.mkdir(fullPath, { "recursive": true }, async err => {
         if (err) {
-            console.error(err);
+            Logger.Error(err);
             res.sendStatus(500);
             return
         }
@@ -314,7 +315,7 @@ App.get("/api/files/download", async (req, res) => {
     try {
         await DownloadPath(res, fullPath);
     } catch (err) {
-        console.error(err);
+        Logger.Error(err);
         res.sendStatus(500);
     }
 });
@@ -347,18 +348,18 @@ App.delete("/api/files", async (req, res) => {
 
     fs.stat(fullPath, (err, stats) => {
         if (err) {
-            console.error(err);
+            Logger.Error(err);
             res.sendStatus(500);
             return
         }
 
         if (stats.isDirectory()) {
-            console.warn(`DELETING '${fullPath}' in ${Math.floor(Config.rmdirDelay/1000)}s`);
+            Logger.Warn(`DELETING '${fullPath}' in ${Math.floor(Config.rmdirDelay/1000)}s`);
             setTimeout(() => {
-                console.warn(`DELETING '${fullPath}'...`);
+                Logger.Warn(`DELETING '${fullPath}'...`);
                 fs.rm(fullPath, { "recursive": true, "force": true }, err => {
                     if (err) {
-                        console.error(err);
+                        Logger.Error(err);
                         res.sendStatus(500);
                         return;
                     }
@@ -368,7 +369,7 @@ App.delete("/api/files", async (req, res) => {
         } else if (stats.isFile()) {
             fs.unlink(fullPath, err => {
                 if (err) {
-                    console.error(err);
+                    Logger.Error(err);
                     res.sendStatus(500);
                     return;
                 }
@@ -441,7 +442,7 @@ App.get("/share/:shareid", async (req, res) => {
             );
         }
     } catch (err) {
-        console.error(err);
+        Logger.Error(err);
         await JustRender(
             res.status(500),
             "errors/share",
@@ -457,7 +458,7 @@ App.get(/^\/(?!api).*/, (req, res) => {
 (() => {
     if (Config.key || Config.cert) {
         if (!(Config.key && Config.cert)) {
-            console.error("You MUST provide both a private key and certificate to enable HTTPS");
+            Logger.Error("You MUST provide both a private key and certificate to enable HTTPS");
             return;
         }
     
@@ -465,12 +466,18 @@ App.get(/^\/(?!api).*/, (req, res) => {
             "key": fs.readFileSync(Config.key),
             "cert": fs.readFileSync(Config.cert)
         }, App);
-        console.log(`https://127.0.0.1:${Config.port}`);
-        console.log(`https://localhost:${Config.port}`);
+        Logger.Group("Local IPs");
+            Logger.Info(`https://127.0.0.1:${Config.port}`);
+            Logger.Info(`https://localhost:${Config.port}`);
+        Logger.GroupEnd();
+        Logger.Info("Listening on port ", Config.port);
         Server.listen(Config.port);
     } else {
-        console.log(`http://127.0.0.1:${Config.port}`);
-        console.log(`http://localhost:${Config.port}`);
+        Logger.Group("Local IPs");
+            Logger.Info(`http://127.0.0.1:${Config.port}`);
+            Logger.Info(`http://localhost:${Config.port}`);
+        Logger.GroupEnd();
+        Logger.Info("Listening on port ", Config.port);
         App.listen(Config.port);
     }
 })();
