@@ -1,6 +1,6 @@
 @import url('/css/base.css');
 
-#fs, #shares {
+.mobile-min-width {
     min-width: 768px;
 }
 
