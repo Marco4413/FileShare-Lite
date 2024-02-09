@@ -53,7 +53,7 @@ parentPort.on("message", (msg) => {
         const text = msg.message.join("");
         if (msg.logType === "Group")
             console.log(LogTypeTextColor(msg.logType, `${prefix} ${text}:`));
-        else console.log(LogTypeTextColor(msg.logType, `${prefix}: ${text}`));
+        else console.log(LogTypeTextColor(msg.logType, `${prefix}: `) + text);
     } break;
     case "indent":
         Indent += "  ";
