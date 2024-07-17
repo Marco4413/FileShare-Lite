@@ -1,68 +1,84 @@
 function WrapWithTD(content) {
-    const td = document.createElement("td");
+    const $td = document.createElement("td");
     if (content instanceof HTMLElement)
-        td.appendChild(content);
-    else td.innerText = content;
-    return td;
+        $td.appendChild(content);
+    else $td.innerText = content;
+    return $td;
 }
 
 async function ReloadShares() {
     /** @type {HTMLTableElement} */
-    const sharesTable = document.getElementById("shares");
-    await LoadShares(sharesTable);
+    const $sharesTable = document.getElementById("shares");
+    await LoadShares($sharesTable);
+}
+
+function PrettyStorageSize(mb) {
+    return mb >= 1024
+        ? `${(mb*1e-3).toFixed(2)}GB`
+        : `${mb.toFixed(2)}MB`;
+}
+
+async function ReloadStorageSize() {
+    const profSizeReq = await FetchWLoading("/api/profile/size");
+    const profileSize = await profSizeReq.json();
+    const $storage = document.getElementById("storage");
+    $storage.innerText = `${PrettyStorageSize(profileSize.usedStorage)}`;
+    if (profileSize.maxStorage >= 0) {
+        $storage.innerText += `/${PrettyStorageSize(profileSize.maxStorage)}`;
+    }
 }
 
 async function ReloadFS() {
     /** @type {HTMLUListElement} */
-    const fsList = document.getElementById("fs");
-    await LoadFSFromPath(fsList);
+    const $fsList = document.getElementById("fs");
+    await LoadFSFromPath($fsList);
 }
 
-/** @param {HTMLTableElement} sharesTable */
-async function LoadShares(sharesTable) {
+/** @param {HTMLTableElement} $sharesTable */
+async function LoadShares($sharesTable) {
     const res = await FetchWLoading("/api/share/all", { "credentials": "include" })
-    sharesTable.innerHTML = "";
+    $sharesTable.innerHTML = "";
     const shares = await res.json();
     for (const share of shares) {
-        const shareRow = document.createElement("tr");
-        shareRow.classList.add("share-item");
+        const $shareRow = document.createElement("tr");
+        $shareRow.classList.add("share-item");
 
-        const shareDelete = document.createElement("button");
-        shareDelete.classList.add("delete");
-        shareDelete.innerText = "X";
-        shareDelete.addEventListener("click", async () => {
+        const $shareDelete = document.createElement("button");
+        $shareDelete.classList.add("delete");
+        $shareDelete.innerText = "X";
+        $shareDelete.addEventListener("click", async () => {
             const res = await FetchWLoading(`/api/share/${share.id}`, { "method": "DELETE", "credentials": "include" });
             if (!res.ok)
                 window.alert(await res.text());
-            LoadShares(sharesTable);
+            LoadShares($sharesTable);
         });
-        shareRow.appendChild(WrapWithTD(shareDelete));
+        $shareRow.appendChild(WrapWithTD($shareDelete));
 
-        const shareInfo = document.createElement("div");
-        shareInfo.classList.add("share-info");
+        const $shareInfo = document.createElement("div");
+        $shareInfo.classList.add("share-info");
 
-        const shareInfoDownloads = document.createElement("div")
+        const $shareInfoDownloads = document.createElement("div")
         if (share.maxDownloads > 0) {
-            shareInfoDownloads.innerText = `D|${share.downloads}/${share.maxDownloads}`;
-        } else shareInfoDownloads.innerText = `D|${share.downloads}`;
-        shareInfo.appendChild(shareInfoDownloads);
+            $shareInfoDownloads.innerText = `D|${share.downloads}/${share.maxDownloads}`;
+        } else $shareInfoDownloads.innerText = `D|${share.downloads}`;
+        $shareInfo.appendChild($shareInfoDownloads);
 
         if (share.expiryDate > 0) {
-            const shareInfoRemaining = document.createElement("div");
+            const $shareInfoRemaining = document.createElement("div");
             const updateRemainingTime = () => {
                 let desiredTimeout = 0;
                 const remaining = Math.max(0, share.expiryDate - Date.now());
                 if (remaining >= 3600_000) {
-                    shareInfoRemaining.innerText = `R|${Math.ceil(remaining/3600_000)}h`;
+                    $shareInfoRemaining.innerText = `R|${Math.ceil(remaining/3600_000)}h`;
                     desiredTimeout = Math.min(remaining - 3600_000, 3600_000);
                 } else if (remaining >= 60_000) {
-                    shareInfoRemaining.innerText = `R|${Math.ceil(remaining/180_000)}min`;
+                    $shareInfoRemaining.innerText = `R|${Math.ceil(remaining/180_000)}min`;
                     desiredTimeout = Math.min(remaining - 60_000, 30_000);
                 } else if (remaining > 0) {
-                    shareInfoRemaining.innerText = `R|${Math.ceil(remaining/1000)}s`;
+                    $shareInfoRemaining.innerText = `R|${Math.ceil(remaining/1000)}s`;
                     desiredTimeout = 1_000;
-                } else shareInfoRemaining.innerText = "[EXPIRED]";
-                if (shareInfoRemaining.isConnected && desiredTimeout > 0)
+                } else $shareInfoRemaining.innerText = "[EXPIRED]";
+                if ($shareInfoRemaining.isConnected && desiredTimeout > 0)
                     return setTimeout(updateRemainingTime, desiredTimeout);
                 return null;
             };
@@ -71,27 +87,27 @@ async function LoadShares(sharesTable) {
             if (!updateRemainingTime())
                 // 5 seconds is overkill, but it was chosen just to be sure.
                 setTimeout(updateRemainingTime, 5_000);
-            shareInfo.appendChild(shareInfoRemaining);
+            $shareInfo.appendChild($shareInfoRemaining);
         }
 
-        shareRow.appendChild(WrapWithTD(shareInfo));
-        const shareURL = document.createElement("a");
-        shareURL.id = share.id;
-        shareURL.href = `${location.origin}/share/${share.id}`;
-        shareURL.target = "_blank";
-        shareURL.innerText = share.path;
-        shareURL.classList.add("share");
-        shareRow.appendChild(WrapWithTD(shareURL));
-        sharesTable.appendChild(shareRow);
+        $shareRow.appendChild(WrapWithTD($shareInfo));
+        const $shareURL = document.createElement("a");
+        $shareURL.id = share.id;
+        $shareURL.href = `${location.origin}/share/${share.id}`;
+        $shareURL.target = "_blank";
+        $shareURL.innerText = share.path;
+        $shareURL.classList.add("share");
+        $shareRow.appendChild(WrapWithTD($shareURL));
+        $sharesTable.appendChild($shareRow);
     }
 }
 
 /** @type {HTMLLIElement} */
 let SelectedFolder;
-function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
-    rootList.innerHTML = "";
-    rootList.setAttribute("path", path);
-    rootList.classList.add("loaded");
+function LoadFSFromDirTree($rootList, dirTree, path = "", sorted = true) {
+    $rootList.innerHTML = "";
+    $rootList.setAttribute("path", path);
+    $rootList.classList.add("loaded");
     const entries = Object.entries(dirTree);
     if (sorted) {
         entries.sort((a, b) => {
@@ -106,22 +122,22 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
     const isRoot = !(path.length > 0);
     for (const [name, data] of entries) {
         const entryPath = path + name;
-        const entryHolder = document.createElement("li");
+        const $entryHolder = document.createElement("li");
 
-        const entryControls = document.createElement("div");
-        entryControls.classList.add("entry-controls");
+        const $entryControls = document.createElement("div");
+        $entryControls.classList.add("entry-controls");
 
-        const entryHead = document.createElement("div");
-        entryHead.classList.add("entry-head");
+        const $entryHead = document.createElement("div");
+        $entryHead.classList.add("entry-head");
         
-        entryHead.appendChild(entryControls);
-        entryHolder.appendChild(entryHead);
-        rootList.appendChild(entryHolder);
+        $entryHead.appendChild($entryControls);
+        $entryHolder.appendChild($entryHead);
+        $rootList.appendChild($entryHolder);
 
         if (!isRoot) {
-            const shareButton = document.createElement("button");
-            shareButton.classList.add("share");
-            shareButton.addEventListener("click", async ev => {
+            const $shareButton = document.createElement("button");
+            $shareButton.classList.add("share");
+            $shareButton.addEventListener("click", async ev => {
                 let extraParams = "";
                 if (!ev.shiftKey) {
                     const maxDownloads = window.prompt("Max Downloads:", 0);
@@ -143,10 +159,10 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
                 await ReloadShares();
             });
             
-            const deleteButton = document.createElement("button");
-            deleteButton.classList.add("delete");
-            deleteButton.innerText = "X";
-            deleteButton.addEventListener("click", async () => {
+            const $deleteButton = document.createElement("button");
+            $deleteButton.classList.add("delete");
+            $deleteButton.innerText = "X";
+            $deleteButton.addEventListener("click", async () => {
                 const res = await FetchWLoading("/api/files", {
                     "credentials": "include",
                     "method": "DELETE",
@@ -154,88 +170,89 @@ function LoadFSFromDirTree(rootList, dirTree, path = "", sorted = true) {
                     "body": `path=${encodeURIComponent(entryPath)}`
                 });
                 if (res.ok) {
-                    const parent = entryHolder.parentElement;
-                    if (SelectedFolder && (entryHolder === SelectedFolder || entryHolder.contains(SelectedFolder))) {
+                    const parent = $entryHolder.parentElement;
+                    if (SelectedFolder && ($entryHolder === SelectedFolder || $entryHolder.contains(SelectedFolder))) {
                         SelectedFolder = parent.parentElement; // The root node can't be deleted so this should be safe
                         SelectedFolder.classList.add("selected");
                     }
-                    entryHolder.remove();
-                }
-                else window.alert(await res.text());
+                    $entryHolder.remove();
+                    // This may or may not update the storage value
+                    await ReloadStorageSize();
+                } else window.alert(await res.text());
             });
     
-            entryControls.appendChild(deleteButton);
-            entryControls.appendChild(shareButton);
+            $entryControls.appendChild($deleteButton);
+            $entryControls.appendChild($shareButton);
         }
 
-        const entryName = document.createElement(isRoot ? "span" : "a");
-        entryName.classList.add("entry-name");
-        entryName.innerText = name;
+        const $entryName = document.createElement(isRoot ? "span" : "a");
+        $entryName.classList.add("entry-name");
+        $entryName.innerText = name;
         if (!isRoot) {
-            entryName.href = `/api/files/download?path=${encodeURIComponent(path + name)}`;
-            entryName.target = "_blank";
+            $entryName.href = `/api/files/download?path=${encodeURIComponent(path + name)}`;
+            $entryName.target = "_blank";
         }
-        entryHead.appendChild(entryName);
+        $entryHead.appendChild($entryName);
 
         if (Array.isArray(data)) {
-            entryHolder.classList.add("file");
+            $entryHolder.classList.add("file");
             const [file] = data;
             const lastModified = new Date(file.lastModified);
-            const entryInfo = document.createElement("span");
-            entryInfo.classList.add("entry-info");
-            entryInfo.innerText = ` ${file.size}B ${lastModified.toLocaleDateString()} ${lastModified.toLocaleTimeString()}`;
-            entryHead.appendChild(entryInfo);
+            const $entryInfo = document.createElement("span");
+            $entryInfo.classList.add("entry-info");
+            $entryInfo.innerText = ` ${file.size}B ${lastModified.toLocaleDateString()} ${lastModified.toLocaleTimeString()}`;
+            $entryHead.appendChild($entryInfo);
         } else {
-            entryHolder.classList.add("directory");
-            entryHolder.addEventListener("click", ev => {
+            $entryHolder.classList.add("directory");
+            $entryHolder.addEventListener("click", ev => {
                 ev.stopPropagation();
                 if (SelectedFolder)
                     SelectedFolder.classList.remove("selected");
-                SelectedFolder = entryHolder;
+                SelectedFolder = $entryHolder;
                 SelectedFolder.classList.add("selected");
             });
 
             const dirPath = entryPath.endsWith("/")
                 ? entryPath : entryPath + "/"
 
-            const entryChildrenHolder = document.createElement("ul");
-            entryChildrenHolder.classList.add("fs-tree", "collapsed");
+            const $entryChildrenHolder = document.createElement("ul");
+            $entryChildrenHolder.classList.add("fs-tree", "collapsed");
             // If entryChildrenHolder is not loaded, LoadFSFromPath is not called.
             // Hence, selecting it and uploading files to it can lead to unexpected
             //  behaviour if path is not set.
-            entryChildrenHolder.setAttribute("path", dirPath);
+            $entryChildrenHolder.setAttribute("path", dirPath);
 
             let loaded = data != null;
-            entryChildrenHolder.classList.toggle("loaded", loaded);
+            $entryChildrenHolder.classList.toggle("loaded", loaded);
 
-            const entryExpander = document.createElement("button");
-            entryExpander.classList.add("collapsible", "control");
-            entryExpander.innerText = ">";
-            entryExpander.addEventListener("click", () => {
-                if (entryChildrenHolder.classList.toggle("collapsed"))
-                    entryExpander.innerText = ">";
-                else entryExpander.innerText = "|";
+            const $entryExpander = document.createElement("button");
+            $entryExpander.classList.add("collapsible", "control");
+            $entryExpander.innerText = ">";
+            $entryExpander.addEventListener("click", () => {
+                if ($entryChildrenHolder.classList.toggle("collapsed"))
+                    $entryExpander.innerText = ">";
+                else $entryExpander.innerText = "|";
                 if (!loaded) {
                     loaded = true;
-                    entryChildrenHolder.classList.add("loaded");
-                    LoadFSFromPath(entryChildrenHolder, dirPath);
+                    $entryChildrenHolder.classList.add("loaded");
+                    LoadFSFromPath($entryChildrenHolder, dirPath);
                 }
             });
 
-            entryControls.appendChild(entryExpander);
-            entryHolder.appendChild(entryChildrenHolder);
-            if (loaded) LoadFSFromDirTree(entryChildrenHolder, data, dirPath);
+            $entryControls.appendChild($entryExpander);
+            $entryHolder.appendChild($entryChildrenHolder);
+            if (loaded) LoadFSFromDirTree($entryChildrenHolder, data, dirPath);
         }
     }
 }
 
-async function LoadFSFromPath(fsList, path) {
+async function LoadFSFromPath($fsList, path) {
     const res = await FetchWLoading(`/api/files?path=${path ?? ""}`, { "credentials": "include" });
     const dirTree = await res.json();
     if (res.ok) {
         if (path)
-            LoadFSFromDirTree(fsList, dirTree, path);
-        else LoadFSFromDirTree(fsList, { "/": dirTree });
+            LoadFSFromDirTree($fsList, dirTree, path);
+        else LoadFSFromDirTree($fsList, { "/": dirTree });
     }
     else window.alert(await res.text());
 }
@@ -246,9 +263,9 @@ async function UploadFiles(fileList) {
     for (const file of fileList) {
         let basePath = "/";
         if (SelectedFolder) {
-            const targetFolder = SelectedFolder.querySelector("ul");
-            if (targetFolder) {
-                const targetPath = targetFolder.getAttribute("path");
+            const $targetFolder = SelectedFolder.querySelector("ul");
+            if ($targetFolder) {
+                const targetPath = $targetFolder.getAttribute("path");
                 if (targetPath) basePath = targetPath;
             }
         }
@@ -275,17 +292,24 @@ async function UploadFiles(fileList) {
             req.send(data);
         })));
     }
-    return StartLoadingAttachedToPromise(Promise.all(uploads).catch(err => window.alert(err)));
+    return StartLoadingAttachedToPromise(
+        Promise.all(uploads)
+            .then(() => ReloadStorageSize())
+            .catch(err => {
+                window.alert(err);
+                ReloadStorageSize();
+            })
+    );
 }
 
-/** @param {HTMLInputElement} inputFile */
-async function UploadInputFile(inputFile) {
-    await UploadFiles(inputFile.files);
+/** @param {HTMLInputElement} $inputFile */
+async function UploadInputFile($inputFile) {
+    await UploadFiles($inputFile.files);
     if (SelectedFolder) {
-        const modifiedFolder = SelectedFolder.querySelector("ul");
-        if (modifiedFolder) {
-            const path = modifiedFolder.getAttribute("path");
-            await LoadFSFromPath(modifiedFolder, path)
+        const $modifiedFolder = SelectedFolder.querySelector("ul");
+        if ($modifiedFolder) {
+            const path = $modifiedFolder.getAttribute("path");
+            await LoadFSFromPath($modifiedFolder, path)
         } else await ReloadFS();
     } else await ReloadFS();
 }
@@ -293,15 +317,16 @@ async function UploadInputFile(inputFile) {
 window.addEventListener("load", async () => {
     await ReloadShares();
     await ReloadFS();
+    await ReloadStorageSize();
 
     const profReq = await FetchWLoading("/api/profile");
     const profile = await profReq.json();
 
-    const adminPanel = document.getElementById("admin-panel");
+    const $adminPanel = document.getElementById("admin-panel");
     if (profile.isAdmin)
-        adminPanel.classList.remove("hidden");
+        $adminPanel.classList.remove("hidden");
 
-    const changePassword = document.getElementById("change-password");
+    const $changePassword = document.getElementById("change-password");
     if (HasPermissions(profile.permissions, Permissions.ChangePassword, profile.isAdmin))
-        changePassword.classList.remove("hidden");
+        $changePassword.classList.remove("hidden");
 });
