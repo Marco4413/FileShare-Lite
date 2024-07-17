@@ -30,6 +30,30 @@ export async function DirectoryToJSON(basePath: string, depth: number = -1): Pro
     return dir;
 }
 
+/**
+ * Retrieves the size of the folder in MB.
+ * @param path The path to the directory.
+ * @returns < 0 if any error occurred. >= 0 the size of the folder in MB.
+ */
+export async function DirectorySize(dirPath: string): Promise<number> {
+    let folderSize = 0;
+    const files = (await fs.readdir(dirPath))
+        .map(fileName => path.join(dirPath, fileName));
+    while (files.length > 0) {
+        const filePath = files.pop() as string;
+        const fileStat = await fs.stat(filePath);
+        if (fileStat.isDirectory()) {
+            for (const fileName of await fs.readdir(filePath))
+                files.push(path.join(filePath, fileName));
+        } else if (fileStat.isFile()) {
+            folderSize += fileStat.size/1e6;
+        } else {
+            return -1;
+        }
+    }
+    return folderSize;
+}
+
 export function TrimLeadingSlashes(str: string): string {
     return str.replace(/^[\/\\]*(.*)/g, "$1")
 }
