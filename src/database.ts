@@ -22,7 +22,8 @@ export type User = {
     sessionId: string|null,
     sessionExpiryDate: number|null,
     permissions: number,
-    isAdmin: boolean
+    isAdmin: boolean,
+    maxStorage: number
 };
 
 export type Share = {
@@ -46,7 +47,8 @@ async function CreateDatabase() {
         sessionId TEXT UNIQUE,
         sessionExpiryDate INTEGER DEFAULT 0,
         permissions INTEGER DEFAULT 0,
-        isAdmin BOOLEAN DEFAULT false
+        isAdmin BOOLEAN DEFAULT false,
+        maxStorage INTEGER DEFAULT -1
     );
     `);
     await db.exec(`
@@ -61,6 +63,17 @@ async function CreateDatabase() {
         expiryDate INTEGER DEFAULT 0
     );
     `);
+
+    // DB Migration
+    const usersTableInfo = (await db.all(`PRAGMA table_info('Users');`))
+        .reduce((map, val) => { map[val.name] = val; return map; }, { });
+    if (!usersTableInfo["maxStorage"]) {
+        await db.exec(`
+        ALTER TABLE Users
+        ADD COLUMN maxStorage INTEGER DEFAULT -1;
+        `);
+    }
+
     return db;
 }
 
@@ -93,7 +106,7 @@ export async function MatchUserCredentials(username: string, password: string): 
     return user.username === username && user.password === passwordHash;
 }
 
-export async function CreateUser(username: string, password: string, admin: boolean = false): Promise<string|null> {
+export async function CreateUser(username: string, password: string, admin: boolean = false, maxStorage: number = -1): Promise<string|null> {
     if (await HasUserByUsername(username))
         return null;
 
@@ -104,8 +117,8 @@ export async function CreateUser(username: string, password: string, admin: bool
 
     const db = await GetDatabase();
     const res = await db.run(`
-    INSERT INTO Users(id, username, password, permissions, isAdmin)
-    VALUES (?, ?, ?, ?, ?);`, userId, username, passwordHash, Permissions.Default, admin);
+    INSERT INTO Users(id, username, password, permissions, isAdmin, maxStorage)
+    VALUES (?, ?, ?, ?, ?, ?);`, userId, username, passwordHash, Permissions.Default, admin, maxStorage);
     return res.lastID ? userId : null;
 }
 
@@ -132,7 +145,7 @@ export async function GenerateUserSessionId(username: string, validFor: number):
 export async function GetUserByUsername(username: string, hidePassword: boolean = true): Promise<User|null> {
     const db = await GetDatabase();
     const user = await db.get(`
-    SELECT id, username${hidePassword ? "" : ", password"}, sessionExpiryDate, permissions, isAdmin
+    SELECT id, username${hidePassword ? "" : ", password"}, sessionExpiryDate, permissions, isAdmin, maxStorage
     FROM Users
     WHERE username = ?;
     `, username) ?? null;
@@ -143,7 +156,7 @@ export async function GetUserByUsername(username: string, hidePassword: boolean 
 export async function GetUserBySessionId(id: string, hidePassword: boolean = true): Promise<User|null> {
     const db = await GetDatabase();
     const user = await db.get(`
-    SELECT id, username${hidePassword ? "" : ", password"}, sessionExpiryDate, permissions, isAdmin
+    SELECT id, username${hidePassword ? "" : ", password"}, sessionExpiryDate, permissions, isAdmin, maxStorage
     FROM Users
     WHERE sessionId = ?;
     `, id) ?? null;
@@ -154,7 +167,7 @@ export async function GetUserBySessionId(id: string, hidePassword: boolean = tru
 export async function GetAllUsers(hidePassword: boolean = true): Promise<User[]> {
     const db = await GetDatabase();
     const users = await db.all(`
-    SELECT id, username${hidePassword ? "" : ", password"}, sessionExpiryDate, permissions, isAdmin
+    SELECT id, username${hidePassword ? "" : ", password"}, sessionExpiryDate, permissions, isAdmin, maxStorage
     FROM Users;
     `);
     users.forEach(u => u.isAdmin = u.isAdmin === 1);
@@ -208,6 +221,15 @@ export async function SetUserPasswordById(id: string, password: string): Promise
     SET password = ?
     WHERE id = ?;
     `, passwordHash, id);
+}
+
+export async function SetUserMaxStorageById(id: string, maxStorage: number): Promise<void> {
+    const db = await GetDatabase();
+    await db.run(`
+    UPDATE Users
+    SET maxStorage = ?
+    WHERE id = ?;
+    `, maxStorage, id);
 }
 
 export async function GetUserShares(username: string): Promise<Share[]> {
