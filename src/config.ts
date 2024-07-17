@@ -25,7 +25,8 @@ export type Config = {
     cert?: string,
     downloadCompressionLevel: number,
     maxFilesGetDepth: number,
-    rmdirDelay: number
+    rmdirDelay: number,
+    storageCacheTimeout: number
 };
 
 export function GetDefaultConfig(): Config {
@@ -37,7 +38,8 @@ export function GetDefaultConfig(): Config {
         "cert": "data/certificate.crt",
         "downloadCompressionLevel": 0,
         "maxFilesGetDepth": -1,
-        "rmdirDelay": 5e3
+        "rmdirDelay": 5e3,
+        "storageCacheTimeout": 60e3
     };
 }
 
