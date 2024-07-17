@@ -2,16 +2,16 @@ let PermsTable;
 
 async function ReloadUsers() {
     /** @type {HTMLUListElement} */
-    const usersTable = document.getElementById("users");
-    await LoadUsers(usersTable);
+    const $usersTable = document.getElementById("users");
+    await LoadUsers($usersTable);
 }
 
 function WrapWithTD(content) {
-    const td = document.createElement("td");
+    const $td = document.createElement("td");
     if (content instanceof HTMLElement)
-        td.appendChild(content);
-    else td.innerText = content;
-    return td;
+        $td.appendChild(content);
+    else $td.innerText = content;
+    return $td;
 }
 
 function AddEnterKeyPressListener(input, listener) {
@@ -21,13 +21,13 @@ function AddEnterKeyPressListener(input, listener) {
     });
 }
 
-/** @param {HTMLTableSectionElement} usersTable */
-async function LoadUsers(usersTable) {
+/** @param {HTMLTableSectionElement} $usersTable */
+async function LoadUsers($usersTable) {
     const permsSelUserId = PermsTable.GetUID();
     PermsTable.Set(null);
 
-    const res = await FetchWLoading("/api/admin/users", { "credentials": "include" })
-    usersTable.innerHTML = "";
+    const res = await FetchWLoading("/api/admin/users?includeStorage=true", { "credentials": "include" })
+    $usersTable.innerHTML = "";
     const users = await res.json();
     users.sort((a, b) => {
         if (a.isAdmin === b.isAdmin)
@@ -39,47 +39,57 @@ async function LoadUsers(usersTable) {
         if (user.id === permsSelUserId)
             PermsTable.Set(user.permissions, user.id);
 
-        const userRow = document.createElement("tr");
-        const updateBtn = document.createElement("button");
+        const $userRow = document.createElement("tr");
+        const $updateBtn = document.createElement("button");
 
-        const idTd = document.createElement("td");
-        idTd.innerText = user.id;
+        const $idTd = document.createElement("td");
+        $idTd.innerText = user.id;
 
-        const unameInp = document.createElement("input");
-        unameInp.type = "text";
-        unameInp.value = user.username;
-        unameInp.placeholder = "Username";
-        AddEnterKeyPressListener(unameInp, () => updateBtn.click());
+        const $unameInp = document.createElement("input");
+        $unameInp.type = "text";
+        $unameInp.value = user.username;
+        $unameInp.placeholder = "Username";
+        AddEnterKeyPressListener($unameInp, () => $updateBtn.click());
 
-        const passwInp = document.createElement("input");
-        passwInp.type = "password";
-        passwInp.placeholder = "Password";
-        AddEnterKeyPressListener(passwInp, () => updateBtn.click());
+        const $passwInp = document.createElement("input");
+        $passwInp.type = "password";
+        $passwInp.placeholder = "Password";
+        AddEnterKeyPressListener($passwInp, () => $updateBtn.click());
 
-        const permsBtn = document.createElement("button");
-        permsBtn.innerText = "Edit";
-        permsBtn.addEventListener("click", async () => {
-            console.log(PermsTable.GetUID() === user.id);
+        const $storageSpan = document.createElement("span");
+        $storageSpan.innerText = user.usedStorage ? user.usedStorage.toFixed(2) : "?";
+
+        const $maxStorageInp = document.createElement("input");
+        $maxStorageInp.type = "number";
+        $maxStorageInp.value = user.maxStorage;
+        $maxStorageInp.placeholder = "-1";
+        AddEnterKeyPressListener($maxStorageInp, () => $updateBtn.click());
+
+        const $permsBtn = document.createElement("button");
+        $permsBtn.innerText = "Edit";
+        $permsBtn.addEventListener("click", async () => {
             if (PermsTable.GetUID() === user.id)
                 PermsTable.Set(null);
             else PermsTable.Set(user.permissions, user.id);
         });
 
-        const adminInp = document.createElement("input");
-        adminInp.type = "checkbox";
-        adminInp.checked = user.isAdmin;
+        const $adminInp = document.createElement("input");
+        $adminInp.type = "checkbox";
+        $adminInp.checked = user.isAdmin;
 
-        updateBtn.innerText = "Update";
-        updateBtn.addEventListener("click", async () => {
+        $updateBtn.innerText = "Update";
+        $updateBtn.addEventListener("click", async () => {
             let extraParams = "";
-            if (unameInp.value !== user.username)
-                extraParams += `&uname=${encodeURIComponent(unameInp.value)}`;
-            if (passwInp.value.length > 0)
-                extraParams += `&passw=${encodeURIComponent(passwInp.value)}`;
+            if ($unameInp.value !== user.username)
+                extraParams += `&uname=${encodeURIComponent($unameInp.value)}`;
+            if ($passwInp.value.length > 0)
+                extraParams += `&passw=${encodeURIComponent($passwInp.value)}`;
+            if (Number.isFinite($maxStorageInp.valueAsNumber) && $maxStorageInp.valueAsNumber !== user.maxStorage)
+                extraParams += `&maxStorage=${encodeURIComponent($maxStorageInp.valueAsNumber)}`;
             if (PermsTable.GetUID() === user.id)
                 extraParams += `&perms=${encodeURIComponent(PermsTable.Get())}`;
-            if (adminInp.checked !== user.isAdmin)
-                extraParams += `&admin=${encodeURIComponent(adminInp.checked ? "true" : "false")}`;
+            if ($adminInp.checked !== user.isAdmin)
+                extraParams += `&admin=${encodeURIComponent($adminInp.checked ? "true" : "false")}`;
             const res = await FetchWLoading("/api/admin/users", {
                 "credentials": "include",
                 "method": "PATCH",
@@ -91,9 +101,9 @@ async function LoadUsers(usersTable) {
             await ReloadUsers();
         });
 
-        const deleteBtn = document.createElement("button");
-        deleteBtn.innerText = "Delete";
-        deleteBtn.addEventListener("click", async () => {
+        const $deleteBtn = document.createElement("button");
+        $deleteBtn.innerText = "Delete";
+        $deleteBtn.addEventListener("click", async () => {
             if (!window.confirm(`Are you sure you want to delete user '${user.username}'?\nWARNING: You'll need to manually delete its folder from the server.`))
                 return;
             const res = await FetchWLoading("/api/admin/users", {
@@ -107,42 +117,44 @@ async function LoadUsers(usersTable) {
             await ReloadUsers();
         });
 
-        userRow.appendChild(idTd);
-        userRow.appendChild(WrapWithTD(unameInp));
-        userRow.appendChild(WrapWithTD(passwInp));
-        userRow.appendChild(WrapWithTD(permsBtn));
-        userRow.appendChild(WrapWithTD(adminInp));
-        userRow.appendChild(WrapWithTD(updateBtn));
-        userRow.appendChild(WrapWithTD(deleteBtn));
-        usersTable.appendChild(userRow);
+        $userRow.appendChild($idTd);
+        $userRow.appendChild(WrapWithTD($unameInp));
+        $userRow.appendChild(WrapWithTD($passwInp));
+        $userRow.appendChild(WrapWithTD($storageSpan));
+        $userRow.appendChild(WrapWithTD($maxStorageInp));
+        $userRow.appendChild(WrapWithTD($permsBtn));
+        $userRow.appendChild(WrapWithTD($adminInp));
+        $userRow.appendChild(WrapWithTD($updateBtn));
+        $userRow.appendChild(WrapWithTD($deleteBtn));
+        $usersTable.appendChild($userRow);
     }
     {
-        const userRow = document.createElement("tr");
-        const createBtn = document.createElement("button");
+        const $userRow = document.createElement("tr");
+        const $createBtn = document.createElement("button");
 
-        const idTd = document.createElement("td");
+        const $idTd = document.createElement("td");
 
-        const unameInp = document.createElement("input");
-        unameInp.type = "text";
-        unameInp.placeholder = "Username";
-        AddEnterKeyPressListener(unameInp, () => createBtn.click());
+        const $unameInp = document.createElement("input");
+        $unameInp.type = "text";
+        $unameInp.placeholder = "Username";
+        AddEnterKeyPressListener($unameInp, () => $createBtn.click());
 
-        const passwInp = document.createElement("input");
-        passwInp.type = "password";
-        passwInp.placeholder = "Password";
-        AddEnterKeyPressListener(passwInp, () => createBtn.click());
+        const $passwInp = document.createElement("input");
+        $passwInp.type = "password";
+        $passwInp.placeholder = "Password";
+        AddEnterKeyPressListener($passwInp, () => $createBtn.click());
 
-        const padTd = document.createElement("td");
-        padTd.colSpan = 2;
+        const $padTd = document.createElement("td");
+        $padTd.colSpan = 4;
 
-        createBtn.innerText = "Create";
-        createBtn.addEventListener("click", async () => {
-            if (unameInp.value.length > 0 && passwInp.value.length > 0) {
+        $createBtn.innerText = "Create";
+        $createBtn.addEventListener("click", async () => {
+            if ($unameInp.value.length > 0 && $passwInp.value.length > 0) {
                 const res = await FetchWLoading("/api/admin/users", {
                     "credentials": "include",
                     "method": "POST",
                     "headers": { "Content-Type": "application/x-www-form-urlencoded" },
-                    "body": `uname=${encodeURIComponent(unameInp.value)}&passw=${encodeURIComponent(passwInp.value)}`
+                    "body": `uname=${encodeURIComponent($unameInp.value)}&passw=${encodeURIComponent($passwInp.value)}`
                 });
                 if (res.ok) {
                     await ReloadUsers();
@@ -153,68 +165,68 @@ async function LoadUsers(usersTable) {
             window.alert("Username and/or password not provided.");
         });
 
-        userRow.appendChild(idTd);
-        userRow.appendChild(WrapWithTD(unameInp));
-        userRow.appendChild(WrapWithTD(passwInp));
-        userRow.appendChild(padTd);
-        userRow.appendChild(WrapWithTD(createBtn));
-        usersTable.appendChild(userRow);
+        $userRow.appendChild($idTd);
+        $userRow.appendChild(WrapWithTD($unameInp));
+        $userRow.appendChild(WrapWithTD($passwInp));
+        $userRow.appendChild($padTd);
+        $userRow.appendChild(WrapWithTD($createBtn));
+        $usersTable.appendChild($userRow);
     }
 }
 
 class EditPermsTable {
-    /** @param {HTMLTableElement} tbl */
-    constructor(tbl) {
-        tbl.innerHTML = "";
+    /** @param {HTMLTableElement} $tbl */
+    constructor($tbl) {
+        $tbl.innerHTML = "";
 
-        const thead = document.createElement("thead");
-        const headRow = document.createElement("tr");
-        thead.appendChild(headRow);
-        tbl.appendChild(thead);
+        const $thead = document.createElement("thead");
+        const $headRow = document.createElement("tr");
+        $thead.appendChild($headRow);
+        $tbl.appendChild($thead);
 
-        const tbody = document.createElement("tbody");
-        const bodyRow = document.createElement("tr");
-        tbody.appendChild(bodyRow);
-        tbl.appendChild(tbody);
+        const $tbody = document.createElement("tbody");
+        const $bodyRow = document.createElement("tr");
+        $tbody.appendChild($bodyRow);
+        $tbl.appendChild($tbody);
 
-        const uidCaption = document.createElement("td");
-        uidCaption.innerText = "User ID";
-        headRow.appendChild(uidCaption);
-        const uidLabel = document.createElement("td");
-        bodyRow.appendChild(uidLabel);
+        const $uidCaption = document.createElement("td");
+        $uidCaption.innerText = "User ID";
+        $headRow.appendChild($uidCaption);
+        const $uidLabel = document.createElement("td");
+        $bodyRow.appendChild($uidLabel);
 
         const permInputs = [];
         for (const [name, perm] of Object.entries(Permissions)) {
-            const caption = document.createElement("td");
-            caption.innerText = name;
-            headRow.appendChild(caption);
+            const $caption = document.createElement("td");
+            $caption.innerText = name;
+            $headRow.appendChild($caption);
 
-            const check = document.createElement("input");
-            check.type = "checkbox";
-            bodyRow.appendChild(WrapWithTD(check));
-            permInputs.push({ check, perm });
+            const $check = document.createElement("input");
+            $check.type = "checkbox";
+            $bodyRow.appendChild(WrapWithTD($check));
+            permInputs.push({ $check: $check, perm });
         }
 
-        this.GetUID = function () { return tbl.getAttribute("uid"); };
+        this.GetUID = function () { return $tbl.getAttribute("uid"); };
         this.Get = function () {
             let perms = Permissions_None;
             for (const inp of permInputs) {
-                if (inp.check.checked)
+                if (inp.$check.checked)
                     perms |= inp.perm;
             }
             return perms;
         };
         this.Set = function (perms, uid) {
-            if (tbl.classList.toggle("collapsed", perms == null)) {
-                tbl.removeAttribute("uid");
-                uidLabel.innerText = "none";
+            if ($tbl.classList.toggle("collapsed", perms == null)) {
+                $tbl.removeAttribute("uid");
+                $uidLabel.innerText = "none";
                 return;
             }
 
-            tbl.setAttribute("uid", uid);
-            uidLabel.innerText = uid;
+            $tbl.setAttribute("uid", uid);
+            $uidLabel.innerText = uid;
             for (const inp of permInputs)
-                inp.check.checked = HasPermissions(perms, inp.perm);
+                inp.$check.checked = HasPermissions(perms, inp.perm);
         };
     }
 }
