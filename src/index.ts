@@ -39,6 +39,8 @@ const UploadUserFile = multer({
                 return;
             }
 
+            // If the user uploads a lot of files this is bad
+            // TODO: Find some better solution.
             if (req.user.maxStorage >= 0 && await GetUserSize(req.user.id, true) >= req.user.maxStorage) {
                 cb(new Error(`User has exceeded its storage.`), "");
                 return;
