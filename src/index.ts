@@ -11,6 +11,7 @@ import * as Database from "./database";
 import Logger from "./logger";
 import * as Permissions from "./permissions";
 import { Session, Admin } from "./session";
+import { GetUserSize } from "./user-size";
 import { DirectoryToJSON, DownloadPath, DownloadResult, JustRender, ToSharePath, TrimLeadingSlashes } from "./utils";
 import Views from "./views";
 
@@ -35,6 +36,11 @@ const UploadUserFile = multer({
             const dirPath = path.dirname(fullPath);
             if (!dirPath.startsWith(basePath)) {
                 cb(new Error("Trying to create folder outside of sandbox."), "");
+                return;
+            }
+
+            if (req.user.maxStorage >= 0 && await GetUserSize(req.user.id, true) >= req.user.maxStorage) {
+                cb(new Error(`User has exceeded its storage.`), "");
                 return;
             }
 
@@ -92,6 +98,14 @@ App.post("/logout", (req, res) => {
 
 App.get("/api/admin/users", async (req, res) => {
     const users = await Database.GetAllUsers();
+    if (req.query.includeStorage === "true") {
+        res.send(await Promise.all(users.map(async user => {
+            (user as any).usedStorage = await GetUserSize(user.id, false);
+            return user;
+        })));
+        return;
+    }
+
     res.send(users);
 });
 
@@ -104,7 +118,7 @@ App.post("/api/admin/users", async (req, res) => {
         return;
     }
 
-    const userId = await Database.CreateUser(req.body.uname, req.body.passw, false);
+    const userId = await Database.CreateUser(req.body.uname, req.body.passw, false, -1);
     if (!userId) {
         res.sendStatus(500);
         return;
@@ -140,6 +154,12 @@ App.patch("/api/admin/users", async (req, res) => {
         await Database.SetUserUsernameById(req.body.id, req.body.uname);
     if (req.body.passw)
         await Database.SetUserPasswordById(req.body.id, req.body.passw);
+    if (req.body.maxStorage) {
+        const maxStorage = Number.parseFloat(req.body.maxStorage);
+        if (!Number.isNaN(maxStorage)) {
+            await Database.SetUserMaxStorageById(req.body.id, maxStorage);
+        }
+    }
     res.sendStatus(200);
 });
 
@@ -168,6 +188,18 @@ App.get("/api/profile", async (req, res) => {
         "username": req.user.username,
         "sessionExpiryDate": req.user.sessionExpiryDate,
         "isAdmin": req.user.isAdmin
+    });
+});
+
+App.get("/api/profile/size", async (req, res) => {
+    if (!req.user) {
+        res.sendStatus(500);
+        return;
+    }
+
+    res.send({
+        "usedStorage": await GetUserSize(req.user.id),
+        "maxStorage": req.user.maxStorage
     });
 });
 
