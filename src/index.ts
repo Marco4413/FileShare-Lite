@@ -11,7 +11,7 @@ import * as Database from "./database";
 import Logger from "./logger";
 import * as Permissions from "./permissions";
 import { Session, Admin } from "./session";
-import { GetUserSize } from "./user-size";
+import { GetUserSize } from "./user";
 import { DirectoryToJSON, DownloadPath, DownloadResult, JustRender, ToSharePath, TrimLeadingSlashes } from "./utils";
 import Views from "./views";
 
